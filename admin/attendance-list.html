@@ -76,32 +76,28 @@
                     </select>
                 </div>
 
-                <!-- Batch Filter -->
-                <div class="col-md-3">
-                    <label for="filterBatch" class="form-label">Batch</label>
-                    <select class="form-select" id="filterBatch">
-                        <option value="">All Batches</option>
-                    </select>
-                </div>
-
-                <!-- Search -->
-                <div class="col-md-6">
-                    <label for="searchStudent" class="form-label">Search Student</label>
-                    <div class="search-box">
-                        <i class="bi bi-search search-icon"></i>
-                        <input type="text" class="form-control" id="searchStudent" placeholder="Search by name or email...">
-                    </div>
-                </div>
-
                 <!-- Action Buttons -->
-                <div class="col-md-6 d-flex align-items-end gap-2">
+                <div class="col-md-3 d-flex align-items-end gap-2">
                     <button class="btn btn-primary flex-grow-1" id="applyFiltersBtn">
                         <i class="bi bi-filter"></i> Apply Filters
                     </button>
                     <button class="btn btn-secondary" id="resetFiltersBtn">
                         <i class="bi bi-x-circle"></i> Reset
                     </button>
-                    <button class="btn btn-success" id="exportCSVBtn">
+                </div>
+
+                <!-- Search -->
+                <div class="col-md-9">
+                    <label for="searchStudent" class="form-label">Search</label>
+                    <div class="search-box">
+                        <i class="bi bi-search search-icon"></i>
+                        <input type="text" class="form-control" id="searchStudent" placeholder="Search by name, email, college, or batch...">
+                    </div>
+                </div>
+
+                <!-- Export Button -->
+                <div class="col-md-3 d-flex align-items-end">
+                    <button class="btn btn-success w-100" id="exportCSVBtn">
                         <i class="bi bi-download"></i> Export CSV
                     </button>
                 </div>

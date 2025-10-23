@@ -33,13 +33,11 @@ async function loadAttendanceData() {
         const startDate = document.getElementById('startDate').value;
         const endDate = document.getElementById('endDate').value;
         const college = document.getElementById('filterCollege').value;
-        const batch = document.getElementById('filterBatch').value;
 
         const params = {
             startDate,
             endDate,
-            college,
-            batch
+            college
         };
 
         const response = await apiCall('getAttendanceList', 'GET', params);
@@ -130,18 +128,14 @@ function updateStatistics() {
 // Populate filter dropdowns
 function populateFilters() {
     const colleges = [...new Set(allAttendance.map(r => r.college))];
-    const batches = [...new Set(allAttendance.map(r => r.batchName))];
 
     const collegeSelect = document.getElementById('filterCollege');
-    const batchSelect = document.getElementById('filterBatch');
 
-    // Store current selections
+    // Store current selection
     const currentCollege = collegeSelect.value;
-    const currentBatch = batchSelect.value;
 
     // Clear and repopulate
     collegeSelect.innerHTML = '<option value="">All Colleges</option>';
-    batchSelect.innerHTML = '<option value="">All Batches</option>';
 
     colleges.forEach(college => {
         const option = document.createElement('option');
@@ -150,16 +144,8 @@ function populateFilters() {
         collegeSelect.appendChild(option);
     });
 
-    batches.forEach(batch => {
-        const option = document.createElement('option');
-        option.value = batch;
-        option.textContent = batch;
-        batchSelect.appendChild(option);
-    });
-
-    // Restore selections
+    // Restore selection
     collegeSelect.value = currentCollege;
-    batchSelect.value = currentBatch;
 }
 
 // Filter attendance
@@ -168,7 +154,9 @@ function filterAttendance() {
 
     filteredAttendance = allAttendance.filter(record => {
         return record.name.toLowerCase().includes(searchTerm) ||
-               record.email.toLowerCase().includes(searchTerm);
+               record.email.toLowerCase().includes(searchTerm) ||
+               record.college.toLowerCase().includes(searchTerm) ||
+               record.batchName.toLowerCase().includes(searchTerm);
     });
 
     displayAttendance();
@@ -179,7 +167,6 @@ function filterAttendance() {
 function resetFilters() {
     document.getElementById('searchStudent').value = '';
     document.getElementById('filterCollege').value = '';
-    document.getElementById('filterBatch').value = '';
 
     initializePage();
     loadAttendanceData();
