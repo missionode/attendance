@@ -1,17 +1,17 @@
 // API Configuration
 const CONFIG = {
     // Replace this with your Google Apps Script Web App URL after deployment
-    API_BASE_URL: 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec',
+    API_BASE_URL: 'https://script.google.com/macros/s/AKfycbzX9f7s90PrS4DGOuquScGwCN7lIjK805zytbhhTr2KhpzAvEOJ8uiQumbM_PgBFd_LFQ/exec',
 
     // Google OAuth Configuration
-    GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+    GOOGLE_CLIENT_ID: '489612117645-1nc1fpakposld1s2eae392rjn46424r9.apps.googleusercontent.com',
 
     // App Configuration
     APP_NAME: 'Student Session Management System',
     VERSION: '1.0.0',
 
     // Deployment URL (update this with your GitHub Pages URL)
-    APP_URL: 'https://yourusername.github.io/attendance'
+    APP_URL: 'https://missionode.github.io/attendance'
 };
 
 // Helper function to make API calls

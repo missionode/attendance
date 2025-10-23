@@ -155,9 +155,9 @@ function createBatch(data) {
     const webAppUrl = ScriptApp.getService().getUrl();
     const baseUrl = webAppUrl.replace('/exec', '').replace('/dev', '');
 
-    // Generate URLs (you'll need to update these with your actual domain)
-    const enrollmentURL = `YOUR_FRONTEND_URL/student/enroll.html?batch=${batchId}&college=${encodeURIComponent(college)}`;
-    const attendanceURL = `YOUR_FRONTEND_URL/student/attend.html?batch=${batchId}`;
+    // Generate URLs with your GitHub Pages domain
+    const enrollmentURL = `https://missionode.github.io/attendance/student/enroll.html?batch=${batchId}&college=${encodeURIComponent(college)}`;
+    const attendanceURL = `https://missionode.github.io/attendance/student/attend.html?batch=${batchId}`;
 
     const row = [batchId, batchName, college, createdDate, enrollmentURL, attendanceURL, true];
     sheet.appendRow(row);
