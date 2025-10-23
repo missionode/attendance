@@ -44,10 +44,14 @@ async function loadAttendanceData() {
 
         const response = await apiCall('getAttendanceList', 'GET', params);
 
+        console.log('API Response:', response);
+
         if (response.success && response.data) {
             allAttendance = response.data;
+            console.log('Loaded attendance records:', allAttendance.length);
         } else {
             allAttendance = [];
+            console.log('No attendance data received');
         }
 
         filteredAttendance = [...allAttendance];
