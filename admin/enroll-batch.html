@@ -119,7 +119,7 @@
                             <!-- Enrollment QR -->
                             <div class="col-md-6 mb-3">
                                 <div class="qr-container">
-                                    <canvas id="enrollmentQR"></canvas>
+                                    <div id="enrollmentQR"></div>
                                     <p class="qr-label">Enrollment QR Code</p>
                                     <small class="text-muted">Students scan to register</small>
                                     <button class="btn btn-sm btn-outline-primary mt-2" onclick="downloadQR('enrollmentQR', 'enrollment')">
@@ -131,7 +131,7 @@
                             <!-- Attendance QR -->
                             <div class="col-md-6 mb-3">
                                 <div class="qr-container">
-                                    <canvas id="attendanceQR"></canvas>
+                                    <div id="attendanceQR"></div>
                                     <p class="qr-label">Attendance QR Code</p>
                                     <small class="text-muted">Students scan to mark attendance</small>
                                     <button class="btn btn-sm btn-outline-primary mt-2" onclick="downloadQR('attendanceQR', 'attendance')">
@@ -215,8 +215,8 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- QRCode JS - Using davidshimjs version -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <!-- QRCode JS - davidshimjs/qrcodejs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Config JS -->
     <script src="../assets/js/config.js"></script>
     <!-- Batch JS -->
