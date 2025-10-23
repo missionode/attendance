@@ -3,6 +3,7 @@ const CONFIG = {
     // Replace this with your Google Apps Script Web App URL after deployment
     API_BASE_URL: 'https://script.google.com/macros/s/AKfycbzX9f7s90PrS4DGOuquScGwCN7lIjK805zytbhhTr2KhpzAvEOJ8uiQumbM_PgBFd_LFQ/exec',
 
+    
     // Google OAuth Configuration
     GOOGLE_CLIENT_ID: '489612117645-1nc1fpakposld1s2eae392rjn46424r9.apps.googleusercontent.com',
 
