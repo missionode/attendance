@@ -522,20 +522,41 @@ function getAttendanceList(data) {
       batchMap[batchValues[i][0]] = batchValues[i][1];
     }
 
+    // Parse filter parameters
+    const startDate = data.startDate ? new Date(data.startDate) : null;
+    const endDate = data.endDate ? new Date(data.endDate) : null;
+    const collegeFilter = data.college || '';
+    const batchFilter = data.batch || '';
+
     const records = [];
     for (let i = 1; i < attendanceValues.length; i++) {
       const studentId = attendanceValues[i][1];
       const student = studentMap[studentId];
 
       if (student) {
+        const recordDate = new Date(attendanceValues[i][3]); // date column
+        const college = attendanceValues[i][5];
+        const batchId = attendanceValues[i][2];
+        const batchName = batchMap[batchId] || 'Unknown';
+
+        // Apply filters
+        if (startDate && recordDate < startDate) continue;
+        if (endDate) {
+          const endDatePlusOne = new Date(endDate);
+          endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+          if (recordDate >= endDatePlusOne) continue;
+        }
+        if (collegeFilter && college !== collegeFilter) continue;
+        if (batchFilter && batchName !== batchFilter) continue;
+
         const record = {
           attendanceId: attendanceValues[i][0],
           studentId: studentId,
           name: student.name,
           email: student.email,
-          college: attendanceValues[i][5],
-          batchId: attendanceValues[i][2],
-          batchName: batchMap[attendanceValues[i][2]] || 'Unknown',
+          college: college,
+          batchId: batchId,
+          batchName: batchName,
           photoURL: student.photoURL,
           timestamp: attendanceValues[i][4]
         };
@@ -543,6 +564,9 @@ function getAttendanceList(data) {
         records.push(record);
       }
     }
+
+    // Sort by timestamp descending (newest first)
+    records.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     return { success: true, data: records };
   } catch (error) {
