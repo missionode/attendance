@@ -78,6 +78,7 @@ function handleRequest(e) {
         response = { success: false, message: 'Invalid action' };
     }
 
+    // Return with CORS headers
     return ContentService
       .createTextOutput(JSON.stringify(response))
       .setMimeType(ContentService.MimeType.JSON);
