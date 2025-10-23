@@ -251,6 +251,38 @@ function downloadQR(canvasId, type) {
     }
 }
 
+// Copy URL to clipboard
+function copyURL(type) {
+    const batch = allBatches.find(b => b.batchId === document.getElementById('batchId').value);
+
+    if (!batch) {
+        showToast('Please create or select a batch first', 'warning');
+        return;
+    }
+
+    const url = type === 'enrollment' ? batch.enrollmentURL : batch.attendanceURL;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(url).then(() => {
+        showToast(`${type === 'enrollment' ? 'Enrollment' : 'Attendance'} URL copied to clipboard!`, 'success');
+    }).catch(err => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast(`${type === 'enrollment' ? 'Enrollment' : 'Attendance'} URL copied to clipboard!`, 'success');
+        } catch (err) {
+            showToast('Failed to copy URL', 'danger');
+        }
+        document.body.removeChild(textArea);
+    });
+}
+
 // Load batches
 async function loadBatches() {
     try {
