@@ -148,7 +148,10 @@ function createBatch(data) {
   try {
     const sheet = getSheet(SHEETS.BATCHES);
     const batchId = generateId('batch');
-    const batchName = data.batchName || generateBatchName();
+
+    // Generate unique batch name
+    let batchName = data.batchName || generateUniqueBatchName(sheet);
+
     const college = data.college;
     const createdDate = new Date().toISOString();
 
@@ -176,6 +179,27 @@ function createBatch(data) {
   } catch (error) {
     return { success: false, message: error.toString() };
   }
+}
+
+// Generate unique batch name
+function generateUniqueBatchName(sheet) {
+  const values = sheet.getDataRange().getValues();
+  const existingNames = new Set();
+
+  // Collect existing batch names
+  for (let i = 1; i < values.length; i++) {
+    existingNames.add(values[i][1]); // batchName column
+  }
+
+  // Generate unique name
+  let batchName;
+  let attempts = 0;
+  do {
+    batchName = generateBatchName();
+    attempts++;
+  } while (existingNames.has(batchName) && attempts < 100);
+
+  return batchName;
 }
 
 // Get all batches
