@@ -122,9 +122,14 @@
                                     <div id="enrollmentQR"></div>
                                     <p class="qr-label">Enrollment QR Code</p>
                                     <small class="text-muted">Students scan to register</small>
-                                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="downloadQR('enrollmentQR', 'enrollment')">
-                                        <i class="bi bi-download"></i> Download
-                                    </button>
+                                    <div class="d-flex gap-2 justify-content-center mt-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="downloadQR('enrollmentQR', 'enrollment')">
+                                            <i class="bi bi-download"></i> Download
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyURL('enrollment')">
+                                            <i class="bi bi-clipboard"></i> Copy URL
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -134,9 +139,14 @@
                                     <div id="attendanceQR"></div>
                                     <p class="qr-label">Attendance QR Code</p>
                                     <small class="text-muted">Students scan to mark attendance</small>
-                                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="downloadQR('attendanceQR', 'attendance')">
-                                        <i class="bi bi-download"></i> Download
-                                    </button>
+                                    <div class="d-flex gap-2 justify-content-center mt-2">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="downloadQR('attendanceQR', 'attendance')">
+                                            <i class="bi bi-download"></i> Download
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyURL('attendance')">
+                                            <i class="bi bi-clipboard"></i> Copy URL
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
