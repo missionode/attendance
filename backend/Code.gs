@@ -429,20 +429,30 @@ function enrollStudent(data) {
 // Check enrollment
 function checkEnrollment(data) {
   try {
-    const sheet = getSheet(SHEETS.STUDENTS);
-    const values = sheet.getDataRange().getValues();
+    const studentsSheet = getSheet(SHEETS.STUDENTS);
+    const batchesSheet = getSheet(SHEETS.BATCHES);
 
-    for (let i = 1; i < values.length; i++) {
-      if (values[i][1] === data.googleId && values[i][5] === data.batchId) {
+    const studentValues = studentsSheet.getDataRange().getValues();
+    const batchValues = batchesSheet.getDataRange().getValues();
+
+    // Create batch map
+    const batchMap = {};
+    for (let i = 1; i < batchValues.length; i++) {
+      batchMap[batchValues[i][0]] = batchValues[i][1]; // batchId -> batchName
+    }
+
+    // Find enrolled student
+    for (let i = 1; i < studentValues.length; i++) {
+      if (studentValues[i][1] === data.googleId && studentValues[i][5] === data.batchId) {
         return {
           success: true,
           data: {
-            studentId: values[i][0],
-            name: values[i][2],
-            email: values[i][3],
-            college: values[i][4],
-            batchName: 'BATCH_' + data.batchId.substring(0, 6),
-            enrolledDate: values[i][7]
+            studentId: studentValues[i][0],
+            name: studentValues[i][2],
+            email: studentValues[i][3],
+            college: studentValues[i][4],
+            batchName: batchMap[data.batchId] || 'Unknown Batch',
+            enrolledDate: studentValues[i][7]
           }
         };
       }
