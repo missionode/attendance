@@ -1,0 +1,401 @@
+/* Global Styles */
+:root {
+    --primary-color: #4285f4;
+    --secondary-color: #34a853;
+    --danger-color: #ea4335;
+    --warning-color: #fbbc04;
+    --dark-color: #333333;
+    --light-bg: #f8f9fa;
+    --border-color: #dee2e6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-bg);
+    color: var(--dark-color);
+    line-height: 1.6;
+}
+
+/* Navigation */
+.navbar {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #1967d2 100%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.nav-link {
+    font-weight: 500;
+    transition: opacity 0.3s;
+}
+
+.nav-link:hover {
+    opacity: 0.8;
+}
+
+.nav-link.active {
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 5px;
+}
+
+/* Main Container */
+.main-container {
+    min-height: calc(100vh - 70px);
+    padding: 2rem 0;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    border-radius: 10px 10px 0 0 !important;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 6px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #1967d2;
+    border-color: #1967d2;
+    transform: translateY(-1px);
+}
+
+.btn-success {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-google {
+    background-color: white;
+    color: var(--dark-color);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-google:hover {
+    background-color: var(--light-bg);
+    border-color: var(--primary-color);
+}
+
+/* Forms */
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 1rem;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(66, 133, 244, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+/* Calendar Styles */
+.fc {
+    max-width: 100%;
+}
+
+.fc-daygrid-day-number {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.fc-event {
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 4px;
+    padding: 2px 5px;
+}
+
+.fc-day-today {
+    background-color: rgba(66, 133, 244, 0.1) !important;
+}
+
+/* Student Count Badge */
+.student-count-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: var(--secondary-color);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Student List */
+.student-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    transition: background-color 0.3s;
+}
+
+.student-card:hover {
+    background-color: var(--light-bg);
+}
+
+.student-photo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-color);
+}
+
+.student-info h6 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.student-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* QR Code Container */
+.qr-container {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px dashed var(--border-color);
+}
+
+.qr-container canvas {
+    margin: 0 auto;
+    display: block;
+}
+
+.qr-label {
+    font-weight: 600;
+    margin-top: 1rem;
+    color: var(--dark-color);
+}
+
+/* Batch List */
+.batch-item {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.batch-item:hover {
+    background-color: rgba(66, 133, 244, 0.05);
+    border-color: var(--primary-color);
+}
+
+.batch-item.active {
+    background-color: rgba(66, 133, 244, 0.1);
+    border-color: var(--primary-color);
+}
+
+/* Table Styles */
+.table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    font-weight: 600;
+}
+
+.table tbody tr:hover {
+    background-color: var(--light-bg);
+}
+
+/* Search Box */
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    padding-left: 2.5rem;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    color: white;
+}
+
+/* Modal Styles */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+}
+
+.modal-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 10px 10px 0 0;
+}
+
+.modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Success Message */
+.success-message {
+    text-align: center;
+    padding: 2rem;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 3rem;
+    color: white;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-container {
+        padding: 1rem 0;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .student-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .qr-container {
+        padding: 1rem;
+    }
+
+    .table {
+        font-size: 0.875rem;
+    }
+}
+
+/* Print Styles for QR Codes */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .qr-container, .qr-container * {
+        visibility: visible;
+    }
+
+    .qr-container {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #999;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Badge Styles */
+.badge {
+    padding: 0.35rem 0.65rem;
+    font-weight: 500;
+}
+
+/* Filter Section */
+.filter-section {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}

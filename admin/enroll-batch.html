@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enroll Batch - Admin</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-calendar-check"></i> Session Management
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-calendar3"></i> Calendar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="enroll-batch.html">
+                            <i class="bi bi-qr-code"></i> Enroll Batch
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="attendance-list.html">
+                            <i class="bi bi-list-check"></i> Attendance List
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container main-container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="fw-bold">
+                    <i class="bi bi-qr-code"></i> Enroll Batch
+                </h2>
+                <p class="text-muted">Create batches and generate QR codes for student enrollment</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Batch Creation Form -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-plus-circle"></i> Create New Batch
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="batchForm">
+                            <!-- Batch Name -->
+                            <div class="mb-3">
+                                <label for="batchName" class="form-label">Batch Name</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="batchName" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="generateBatchName">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </div>
+                                <small class="text-muted">Auto-generated batch identifier</small>
+                            </div>
+
+                            <!-- College Name -->
+                            <div class="mb-3">
+                                <label for="collegeName" class="form-label">College Name</label>
+                                <div class="input-group">
+                                    <select class="form-select" id="collegeSelect">
+                                        <option value="">Select or add new college...</option>
+                                    </select>
+                                    <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addCollegeModal">
+                                        <i class="bi bi-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Hidden Batch ID -->
+                            <input type="hidden" id="batchId">
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary flex-grow-1" id="saveBatchBtn">
+                                    <i class="bi bi-save"></i> Create Batch
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="resetFormBtn">
+                                    <i class="bi bi-x-circle"></i> Reset
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- QR Codes Display -->
+                <div class="card mt-4" id="qrCodeSection" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-qr-code-scan"></i> QR Codes
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Enrollment QR -->
+                            <div class="col-md-6 mb-3">
+                                <div class="qr-container">
+                                    <canvas id="enrollmentQR"></canvas>
+                                    <p class="qr-label">Enrollment QR Code</p>
+                                    <small class="text-muted">Students scan to register</small>
+                                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="downloadQR('enrollmentQR', 'enrollment')">
+                                        <i class="bi bi-download"></i> Download
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Attendance QR -->
+                            <div class="col-md-6 mb-3">
+                                <div class="qr-container">
+                                    <canvas id="attendanceQR"></canvas>
+                                    <p class="qr-label">Attendance QR Code</p>
+                                    <small class="text-muted">Students scan to mark attendance</small>
+                                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="downloadQR('attendanceQR', 'attendance')">
+                                        <i class="bi bi-download"></i> Download
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch List -->
+            <div class="col-lg-6 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-list-ul"></i> Existing Batches
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Search and Filter -->
+                        <div class="mb-3">
+                            <div class="search-box">
+                                <i class="bi bi-search search-icon"></i>
+                                <input type="text" class="form-control" id="searchBatch" placeholder="Search batches...">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <select class="form-select" id="filterBatchCollege">
+                                <option value="">All Colleges</option>
+                            </select>
+                        </div>
+
+                        <!-- Batch List -->
+                        <div id="batchList" style="max-height: 600px; overflow-y: auto;">
+                            <!-- Batches will be loaded here -->
+                        </div>
+
+                        <!-- Empty State -->
+                        <div id="emptyBatchState" class="empty-state" style="display: none;">
+                            <div class="empty-state-icon">
+                                <i class="bi bi-inbox"></i>
+                            </div>
+                            <p>No batches created yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add College Modal -->
+    <div class="modal fade" id="addCollegeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-building"></i> Add New College
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addCollegeForm">
+                        <div class="mb-3">
+                            <label for="newCollegeName" class="form-label">College Name</label>
+                            <input type="text" class="form-control" id="newCollegeName" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveCollegeBtn">
+                        <i class="bi bi-save"></i> Add College
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- QRCode JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Config JS -->
+    <script src="../assets/js/config.js"></script>
+    <!-- Batch JS -->
+    <script src="../assets/js/batch.js"></script>
+</body>
+</html>

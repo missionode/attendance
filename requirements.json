@@ -1,0 +1,485 @@
+{
+  "project": {
+    "name": "Student Session Management System",
+    "version": "1.0.0",
+    "type": "responsive_web_application",
+    "description": "A comprehensive web-based system for managing student sessions, attendance, and enrollment across multiple colleges and batches using Google Sheets as backend",
+    "target_users": {
+      "admins": ["Session conductors", "Workshop organizers", "College coordinators"],
+      "students": ["Workshop participants", "Session attendees", "College students"]
+    }
+  },
+  
+  "technical_stack": {
+    "frontend": {
+      "html": "Semantic HTML5 with responsive design",
+      "css": "Bootstrap 5.1.3 with custom styling",
+      "javascript": "Vanilla ES6+ with modular architecture",
+      "libraries": [
+        "FullCalendar 5.10.1 for calendar view",
+        "QRCode.js for QR generation",
+        "Google Identity Services for OAuth",
+        "SheetJS for CSV export",
+        "Bootstrap Icons for UI elements"
+      ]
+    },
+    "backend": {
+      "platform": "Google Apps Script",
+      "database": "Google Sheets",
+      "authentication": "Google OAuth 2.0",
+      "deployment": "Google Apps Script Web App"
+    },
+    "hosting": {
+      "frontend": "Netlify/GitHub Pages/Firebase Hosting",
+      "backend": "Google Apps Script (already deployed)",
+      "domain": "Custom domain optional"
+    }
+  },
+
+  "user_roles": {
+    "admin": {
+      "permissions": [
+        "view_calendar_dashboard",
+        "create_edit_batches",
+        "generate_qr_codes",
+        "view_student_lists",
+        "export_attendance_data",
+        "manage_colleges",
+        "view_analytics"
+      ],
+      "authentication": "No login required (single admin instance)"
+    },
+    "student": {
+      "permissions": [
+        "self_register_via_qr",
+        "mark_attendance",
+        "view_own_profile"
+      ],
+      "authentication": "Google OAuth 2.0"
+    }
+  },
+
+  "database_structure": {
+    "google_sheets": {
+      "batches_sheet": {
+        "sheet_name": "batches",
+        "columns": [
+          {"name": "batchId", "type": "string", "description": "Unique identifier for batch"},
+          {"name": "batchName", "type": "string", "description": "Auto-generated batch name (e.g., BATCH_X8A9B)"},
+          {"name": "college", "type": "string", "description": "College name"},
+          {"name": "createdDate", "type": "timestamp", "description": "Batch creation date"},
+          {"name": "enrollmentQR", "type": "string", "description": "URL for enrollment QR code"},
+          {"name": "attendanceQR", "type": "string", "description": "URL for attendance QR code"},
+          {"name": "isActive", "type": "boolean", "description": "Batch status"}
+        ],
+        "sample_data": [
+          ["batch_abc123", "BATCH_5X8A9B", "ABC College", "2024-01-15", "https://app.com/enroll/batch_abc123?college=ABC+College", "https://app.com/attend/batch_abc123", true]
+        ]
+      },
+      "students_sheet": {
+        "sheet_name": "students",
+        "columns": [
+          {"name": "studentId", "type": "string", "description": "Unique student identifier"},
+          {"name": "googleId", "type": "string", "description": "Google OAuth ID"},
+          {"name": "name", "type": "string", "description": "Student full name"},
+          {"name": "email", "type": "string", "description": "Student email"},
+          {"name": "college", "type": "string", "description": "College name"},
+          {"name": "batchId", "type": "string", "description": "Reference to batches_sheet"},
+          {"name": "photoURL", "type": "string", "description": "Google profile picture URL"},
+          {"name": "enrolledDate", "type": "timestamp", "description": "Initial enrollment date"}
+        ]
+      },
+      "attendance_sheet": {
+        "sheet_name": "attendance",
+        "columns": [
+          {"name": "attendanceId", "type": "string", "description": "Unique attendance record ID"},
+          {"name": "studentId", "type": "string", "description": "Reference to students_sheet"},
+          {"name": "batchId", "type": "string", "description": "Reference to batches_sheet"},
+          {"name": "date", "type": "date", "description": "Attendance date (YYYY-MM-DD)"},
+          {"name": "timestamp", "type": "timestamp", "description": "Exact time of attendance"},
+          {"name": "college", "type": "string", "description": "College name for quick filtering"}
+        ]
+      }
+    }
+  },
+
+  "api_endpoints": {
+    "base_url": "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec",
+    "endpoints": [
+      {
+        "name": "createBatch",
+        "method": "POST",
+        "parameters": {
+          "college": "string (required)",
+          "batchName": "string (optional, auto-generated if not provided)"
+        },
+        "response": {
+          "success": "boolean",
+          "batchId": "string",
+          "enrollmentQR": "string",
+          "attendanceQR": "string"
+        }
+      },
+      {
+        "name": "getBatches",
+        "method": "GET",
+        "parameters": {
+          "college": "string (optional filter)",
+          "activeOnly": "boolean (optional)"
+        },
+        "response": {
+          "batches": "array of batch objects"
+        }
+      },
+      {
+        "name": "getCalendarData",
+        "method": "GET",
+        "parameters": {
+          "month": "number (optional)",
+          "year": "number (optional)"
+        },
+        "response": {
+          "calendarData": "array of {date: string, totalStudents: number, sessions: array}"
+        }
+      },
+      {
+        "name": "getStudentsByDate",
+        "method": "GET",
+        "parameters": {
+          "date": "string (required, YYYY-MM-DD)",
+          "college": "string (optional)",
+          "batchId": "string (optional)"
+        },
+        "response": {
+          "students": "array of student objects with attendance info"
+        }
+      },
+      {
+        "name": "enrollStudent",
+        "method": "POST",
+        "parameters": {
+          "name": "string (required)",
+          "email": "string (required)",
+          "college": "string (required)",
+          "batchId": "string (required)",
+          "googleId": "string (required)",
+          "photoURL": "string (optional)"
+        },
+        "response": {
+          "success": "boolean",
+          "studentId": "string",
+          "attendanceMarked": "boolean"
+        }
+      },
+      {
+        "name": "markAttendance",
+        "method": "POST",
+        "parameters": {
+          "studentId": "string (required)",
+          "batchId": "string (required)",
+          "college": "string (required)"
+        },
+        "response": {
+          "success": "boolean",
+          "attendanceId": "string"
+        }
+      },
+      {
+        "name": "getAttendanceList",
+        "method": "GET",
+        "parameters": {
+          "startDate": "string (optional)",
+          "endDate": "string (optional)",
+          "college": "string (optional)",
+          "batchId": "string (optional)"
+        },
+        "response": {
+          "attendance": "array of attendance records with student details"
+        }
+      },
+      {
+        "name": "exportAttendance",
+        "method": "GET",
+        "parameters": {
+          "format": "string (csv/json)",
+          "filters": "object (same as getAttendanceList)"
+        },
+        "response": "CSV file or JSON data"
+      }
+    ]
+  },
+
+  "frontend_pages": {
+    "admin_pages": {
+      "calendar_dashboard": {
+        "path": "/admin/index.html",
+        "description": "Main admin dashboard with calendar view",
+        "components": [
+          "navigation_menu",
+          "calendar_component",
+          "date_click_modal",
+          "student_list_with_search"
+        ],
+        "features": [
+          "Monthly calendar view with student counts per date",
+          "Click date to view student list for that day",
+          "Search and filter students by name/college",
+          "Responsive design for mobile/tablet"
+        ]
+      },
+      "enroll_batch": {
+        "path": "/admin/enroll-batch.html",
+        "description": "Batch creation and management",
+        "components": [
+          "batch_creation_form",
+          "qr_code_generator",
+          "batch_list_with_filters",
+          "college_management"
+        ],
+        "features": [
+          "Auto-generate batch names",
+          "College selection (dropdown with add new)",
+          "Real-time QR code generation",
+          "Existing batch list with edit capabilities"
+        ]
+      },
+      "attendance_list": {
+        "path": "/admin/attendance-list.html",
+        "description": "Attendance history and reporting",
+        "components": [
+          "date_range_filter",
+          "college_batch_filters",
+          "attendance_table",
+          "export_button"
+        ],
+        "features": [
+          "Filter by date range, college, batch",
+          "Search student names",
+          "Export to CSV functionality",
+          "Attendance statistics"
+        ]
+      }
+    },
+    "student_pages": {
+      "enrollment_page": {
+        "path": "/student/enroll.html",
+        "description": "Student registration via enrollment QR",
+        "components": [
+          "google_oauth_button",
+          "prefilled_registration_form",
+          "success_modal"
+        ],
+        "features": [
+          "Google OAuth integration",
+          "Auto-filled college and batch from QR parameters",
+          "Automatic attendance marking upon registration",
+          "Mobile-optimized form"
+        ]
+      },
+      "attendance_page": {
+        "path": "/student/attend.html",
+        "description": "Daily attendance marking via attendance QR",
+        "components": [
+          "student_dashboard",
+          "attendance_button",
+          "attendance_history"
+        ],
+        "features": [
+          "One-click attendance marking",
+          "Attendance history for student",
+          "Success confirmation",
+          "Auto-redirect if not logged in"
+        ]
+      }
+    }
+  },
+
+  "qr_code_system": {
+    "enrollment_qr": {
+      "url_format": "https://[YOUR_DOMAIN]/student/enroll.html?batch={batchId}&college={collegeName}",
+      "parameters": {
+        "batch": "batchId from batches_sheet",
+        "college": "URL-encoded college name"
+      },
+      "purpose": "Student registration and first-time attendance"
+    },
+    "attendance_qr": {
+      "url_format": "https://[YOUR_DOMAIN]/student/attend.html?batch={batchId}",
+      "parameters": {
+        "batch": "batchId from batches_sheet"
+      },
+      "purpose": "Daily attendance marking for enrolled students"
+    },
+    "generation": {
+      "library": "QRCode.js",
+      "size": "200x200 pixels",
+      "color": "Dark (#333333)",
+      "background": "White (#FFFFFF)"
+    }
+  },
+
+  "authentication_flow": {
+    "student_oauth": {
+      "provider": "Google Identity Services",
+      "scope": "profile email",
+      "flow": [
+        "Student scans QR code",
+        "Redirect to student page with batch parameters",
+        "Show Google Sign-In button",
+        "On success, store user info in localStorage",
+        "Pre-fill registration form with Google profile data",
+        "Submit enrollment/attendance"
+      ],
+      "data_retrieved": ["name", "email", "googleId", "photoURL"]
+    },
+    "session_management": {
+      "student_session": "localStorage with Google OAuth token",
+      "admin_session": "No authentication (single instance)"
+    }
+  },
+
+  "responsive_design": {
+    "breakpoints": {
+      "mobile": "320px - 768px",
+      "tablet": "768px - 1024px",
+      "desktop": "1024px+"
+    },
+    "mobile_features": [
+      "Touch-friendly buttons and controls",
+      "QR code scanning optimization",
+      "Collapsible navigation",
+      "Mobile-optimized calendar view"
+    ],
+    "accessibility": {
+      "aria_labels": "All interactive elements",
+      "keyboard_navigation": "Full support",
+      "color_contrast": "WCAG AA compliant",
+      "font_sizes": "Relative units (rem/em)"
+    }
+  },
+
+  "implementation_phases": {
+    "phase_1": {
+      "name": "Core Backend & API",
+      "duration": "1 week",
+      "tasks": [
+        "Set up Google Sheets structure",
+        "Develop Google Apps Script API",
+        "Create basic CRUD operations",
+        "Test API endpoints"
+      ],
+      "deliverables": ["Working Google Apps Script web app", "Structured Google Sheets"]
+    },
+    "phase_2": {
+      "name": "Admin Dashboard",
+      "duration": "1 week",
+      "tasks": [
+        "Create admin calendar dashboard",
+        "Implement FullCalendar integration",
+        "Build student list modal with search",
+        "Add responsive navigation"
+      ],
+      "deliverables": ["Functional admin dashboard", "Calendar with student counts"]
+    },
+    "phase_3": {
+      "name": "Batch Management",
+      "duration": "1 week",
+      "tasks": [
+        "Build batch creation form",
+        "Implement QR code generation",
+        "Create batch list with filters",
+        "Add college management"
+      ],
+      "deliverables": ["Complete batch management system", "QR code generation"]
+    },
+    "phase_4": {
+      "name": "Student Flow",
+      "duration": "1 week",
+      "tasks": [
+        "Implement Google OAuth integration",
+        "Build student enrollment page",
+        "Create attendance marking page",
+        "Add success workflows"
+      ],
+      "deliverables": ["Student registration flow", "Attendance marking system"]
+    },
+    "phase_5": {
+      "name": "Reporting & Export",
+      "duration": "3 days",
+      "tasks": [
+        "Build attendance list page",
+        "Implement CSV export functionality",
+        "Add filtering and search",
+        "Create analytics dashboard"
+      ],
+      "deliverables": ["Attendance reporting system", "CSV export feature"]
+    },
+    "phase_6": {
+      "name": "Polish & Deployment",
+      "duration": "2 days",
+      "tasks": [
+        "Mobile optimization",
+        "Error handling and validation",
+        "Performance testing",
+        "Deploy to production"
+      ],
+      "deliverables": ["Production-ready application", "Documentation"]
+    }
+  },
+
+  "error_handling": {
+    "validation_rules": {
+      "batch_creation": ["College name required", "Batch name uniqueness"],
+      "student_registration": ["All fields required", "Email validation", "Batch existence check"],
+      "attendance_marking": ["Student must be enrolled", "Duplicate attendance prevention"]
+    },
+    "error_messages": {
+      "duplicate_student": "Student already enrolled in this batch",
+      "invalid_batch": "Invalid batch ID",
+      "network_error": "Unable to connect. Please check your internet.",
+      "oauth_error": "Google sign-in failed. Please try again."
+    }
+  },
+
+  "performance_requirements": {
+    "page_load": "Under 3 seconds on 3G",
+    "api_response": "Under 2 seconds for all operations",
+    "mobile_optimization": "Core Web Vitals compliant",
+    "offline_capability": "Basic functionality with localStorage fallback"
+  },
+
+  "testing_requirements": {
+    "browser_compatibility": ["Chrome 90+", "Firefox 88+", "Safari 14+", "Edge 90+"],
+    "device_testing": ["Mobile phones", "Tablets", "Desktop"],
+    "qr_code_testing": ["Various QR scanner apps", "Camera compatibility"],
+    "oauth_testing": ["Google sign-in flow", "Token management"]
+  },
+
+  "deployment_configuration": {
+    "google_apis_setup": {
+      "steps": [
+        "Create Google Cloud Project",
+        "Enable Google Sheets API",
+        "Configure OAuth 2.0 credentials",
+        "Set authorized JavaScript origins"
+      ]
+    },
+    "apps_script_deployment": {
+      "steps": [
+        "Create new Apps Script project",
+        "Deploy as web app (execute as me, access anyone)",
+        "Configure appsscript.json manifest"
+      ]
+    },
+    "frontend_deployment": {
+      "options": ["Netlify drag-and-drop", "GitHub Pages", "Firebase Hosting"],
+      "requirements": ["HTTPS enabled", "Custom domain (optional)", "SSL certificate"]
+    }
+  },
+
+  "success_metrics": {
+    "usability": ["Student registration time < 2 minutes", "Attendance marking < 30 seconds"],
+    "reliability": ["99% uptime", "Zero data loss"],
+    "adoption": ["95% successful QR scans", "90% student satisfaction"]
+  }
+}

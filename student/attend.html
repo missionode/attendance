@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container main-container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Logo/Header -->
+                <div class="text-center mb-4">
+                    <div style="font-size: 4rem; color: #4285f4;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                    <h2 class="fw-bold">Mark Attendance</h2>
+                    <p class="text-muted">Register your presence for today's session</p>
+                </div>
+
+                <!-- Sign In Required Card -->
+                <div class="card" id="signInRequiredCard">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4" style="font-size: 3rem; color: #ea4335;">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                        <h5 class="mb-4">Authentication Required</h5>
+                        <p class="text-muted mb-4">
+                            Please sign in with your Google account to mark attendance.
+                        </p>
+
+                        <!-- Google Sign In Button -->
+                        <div id="g_id_onload"
+                             data-client_id="YOUR_GOOGLE_CLIENT_ID"
+                             data-callback="handleCredentialResponse">
+                        </div>
+                        <div class="g_id_signin"
+                             data-type="standard"
+                             data-size="large"
+                             data-theme="outline"
+                             data-text="sign_in_with"
+                             data-shape="rectangular"
+                             data-logo_alignment="left">
+                        </div>
+
+                        <!-- Manual Sign In Button (fallback) -->
+                        <button class="btn btn-google w-100 mt-3" id="manualSignInBtn">
+                            <svg width="20" height="20" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <span class="ms-2">Sign in with Google</span>
+                        </button>
+
+                        <div class="alert alert-info mt-4">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Note:</strong> You must be enrolled in this batch to mark attendance.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Dashboard Card -->
+                <div class="card" id="attendanceCard" style="display: none;">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-person-badge"></i> Student Dashboard
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- User Profile -->
+                        <div class="text-center mb-4">
+                            <img id="studentPhoto" src="" alt="Profile" class="student-photo" style="width: 80px; height: 80px; border: 3px solid #4285f4;">
+                            <h5 class="mt-2 mb-0" id="studentName"></h5>
+                            <small class="text-muted" id="studentEmail"></small>
+                        </div>
+
+                        <!-- Student Info -->
+                        <div class="mb-4">
+                            <div class="row text-center">
+                                <div class="col-6 mb-3">
+                                    <div class="p-3 bg-light rounded">
+                                        <div class="text-muted small">College</div>
+                                        <div class="fw-bold" id="studentCollege">-</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <div class="p-3 bg-light rounded">
+                                        <div class="text-muted small">Batch</div>
+                                        <div class="fw-bold" id="studentBatch">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Today's Attendance -->
+                        <div class="alert alert-info" id="attendanceStatus">
+                            <i class="bi bi-clock-history"></i>
+                            Checking today's attendance...
+                        </div>
+
+                        <!-- Mark Attendance Button -->
+                        <div class="d-grid gap-2 mb-3" id="markAttendanceSection">
+                            <button class="btn btn-success btn-lg" id="markAttendanceBtn">
+                                <i class="bi bi-check-circle"></i> Mark Attendance for Today
+                            </button>
+                        </div>
+
+                        <!-- Already Marked Message -->
+                        <div class="alert alert-success" id="alreadyMarkedMessage" style="display: none;">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <strong>Attendance Already Marked!</strong>
+                            <p class="mb-0 mt-2">You have already marked your attendance for today at <span id="markedTime"></span></p>
+                        </div>
+
+                        <!-- Recent Attendance History -->
+                        <div class="mt-4">
+                            <h6 class="mb-3">
+                                <i class="bi bi-calendar-check"></i> Recent Attendance
+                            </h6>
+                            <div id="attendanceHistory">
+                                <!-- Attendance history will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Sign Out Button -->
+                        <div class="d-grid mt-4">
+                            <button class="btn btn-outline-secondary" id="signOutBtn">
+                                <i class="bi bi-box-arrow-left"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Card -->
+                <div class="card" id="successCard" style="display: none;">
+                    <div class="card-body">
+                        <div class="success-message">
+                            <div class="success-icon">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                            <h4 class="mb-3">Attendance Marked!</h4>
+                            <p class="text-muted">
+                                Your attendance has been successfully recorded for today.
+                            </p>
+                            <p class="mb-4">
+                                <strong>Time:</strong> <span id="successTime"></span>
+                            </p>
+                            <button class="btn btn-primary" id="backToDashboardBtn">
+                                <i class="bi bi-arrow-left"></i> Back to Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Not Enrolled Card -->
+                <div class="card" id="notEnrolledCard" style="display: none;">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4" style="font-size: 3rem; color: #fbbc04;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <h5 class="mb-4">Not Enrolled</h5>
+                        <p class="text-muted mb-4">
+                            You are not enrolled in this batch. Please scan the enrollment QR code first.
+                        </p>
+                        <button class="btn btn-primary" id="goBackBtn">
+                            <i class="bi bi-arrow-left"></i> Go Back
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Config JS -->
+    <script src="../assets/js/config.js"></script>
+    <!-- Attend JS -->
+    <script src="../assets/js/attend.js"></script>
+</body>
+</html>
