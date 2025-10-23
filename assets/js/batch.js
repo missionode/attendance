@@ -186,35 +186,56 @@ async function handleBatchSubmit(e) {
 
 // Generate QR codes
 function generateQRCodes(batchData) {
+    console.log('Generating QR codes for:', batchData);
+
+    // Check if QRCode library is loaded
+    if (typeof QRCode === 'undefined') {
+        console.error('QRCode library not loaded!');
+        showToast('QR Code library failed to load. Please refresh the page.', 'danger');
+        return;
+    }
+
     // Clear existing QR codes
     const enrollmentCanvas = document.getElementById('enrollmentQR');
     const attendanceCanvas = document.getElementById('attendanceQR');
 
+    if (!enrollmentCanvas || !attendanceCanvas) {
+        console.error('QR code containers not found!');
+        return;
+    }
+
     enrollmentCanvas.innerHTML = '';
     attendanceCanvas.innerHTML = '';
 
-    // Generate enrollment QR
-    currentQRCodes.enrollment = new QRCode(enrollmentCanvas, {
-        text: batchData.enrollmentURL,
-        width: 200,
-        height: 200,
-        colorDark: '#333333',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
+    try {
+        // Generate enrollment QR
+        currentQRCodes.enrollment = new QRCode(enrollmentCanvas, {
+            text: batchData.enrollmentURL || '',
+            width: 200,
+            height: 200,
+            colorDark: '#333333',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
 
-    // Generate attendance QR
-    currentQRCodes.attendance = new QRCode(attendanceCanvas, {
-        text: batchData.attendanceURL,
-        width: 200,
-        height: 200,
-        colorDark: '#333333',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.H
-    });
+        // Generate attendance QR
+        currentQRCodes.attendance = new QRCode(attendanceCanvas, {
+            text: batchData.attendanceURL || '',
+            width: 200,
+            height: 200,
+            colorDark: '#333333',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
 
-    // Store batch ID
-    document.getElementById('batchId').value = batchData.batchId;
+        console.log('QR codes generated successfully');
+
+        // Store batch ID
+        document.getElementById('batchId').value = batchData.batchId;
+    } catch (error) {
+        console.error('Error generating QR codes:', error);
+        showToast('Failed to generate QR codes: ' + error.message, 'danger');
+    }
 }
 
 // Download QR code
