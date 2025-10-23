@@ -21,20 +21,26 @@ async function apiCall(endpoint, method = 'GET', data = null) {
         const url = new URL(CONFIG.API_BASE_URL);
         url.searchParams.append('action', endpoint);
 
-        const options = {
-            method: method,
-            mode: 'cors',
-        };
-
-        if (data && method === 'POST') {
-            url.searchParams.append('data', JSON.stringify(data));
-        } else if (data && method === 'GET') {
-            Object.keys(data).forEach(key => {
-                url.searchParams.append(key, data[key]);
-            });
+        // Add data as URL parameters (Google Apps Script requires GET requests)
+        if (data) {
+            if (method === 'POST') {
+                // For POST operations, send data as JSON string
+                url.searchParams.append('data', JSON.stringify(data));
+            } else {
+                // For GET operations, add each parameter
+                Object.keys(data).forEach(key => {
+                    if (data[key] !== null && data[key] !== undefined) {
+                        url.searchParams.append(key, data[key]);
+                    }
+                });
+            }
         }
 
-        const response = await fetch(url.toString(), options);
+        // Always use GET for Google Apps Script
+        const response = await fetch(url.toString(), {
+            method: 'GET',
+            redirect: 'follow'
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
