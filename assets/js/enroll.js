@@ -56,7 +56,7 @@ function initializeGoogleSignIn() {
 }
 
 // Handle Google Sign-In response
-function handleCredentialResponse(response) {
+async function handleCredentialResponse(response) {
     try {
         let userInfo;
 
@@ -80,8 +80,8 @@ function handleCredentialResponse(response) {
         // Store in localStorage
         localStorage.setItem('studentSession', JSON.stringify(userData));
 
-        // Show enrollment form
-        showEnrollmentForm();
+        // Check if already enrolled
+        await checkEnrollmentStatus();
     } catch (error) {
         console.error('Error handling sign-in:', error);
         showToast('Sign-in failed. Please try again.', 'danger');
@@ -100,12 +100,116 @@ function parseJwt(token) {
 }
 
 // Check existing session
-function checkExistingSession() {
+async function checkExistingSession() {
     const session = localStorage.getItem('studentSession');
 
     if (session) {
         userData = JSON.parse(session);
+        await checkEnrollmentStatus();
+    }
+}
+
+// Check if student is already enrolled
+async function checkEnrollmentStatus() {
+    try {
+        showLoading('Checking enrollment status...');
+
+        const response = await apiCall('checkEnrollment', 'GET', {
+            googleId: userData.id,
+            batchId: batchData.batchId
+        });
+
+        if (response.success) {
+            // Student is already enrolled
+            console.log('Student already enrolled:', response.data);
+            userData.studentId = response.data.studentId;
+            localStorage.setItem('studentSession', JSON.stringify(userData));
+
+            // Check if attendance is already marked today
+            const attendanceResponse = await apiCall('checkTodayAttendance', 'GET', {
+                studentId: userData.studentId
+            });
+
+            if (attendanceResponse.success && attendanceResponse.data.marked) {
+                // Already marked attendance today - show success without the attendance message
+                showAlreadyEnrolledMessage(false);
+            } else {
+                // Not marked today - mark attendance and show success with message
+                await markAttendanceForEnrolledStudent();
+                showAlreadyEnrolledMessage(true);
+            }
+        } else {
+            // Not enrolled yet - show enrollment form
+            showEnrollmentForm();
+        }
+    } catch (error) {
+        console.error('Error checking enrollment:', error);
+        // On error, show enrollment form
         showEnrollmentForm();
+    } finally {
+        hideLoading();
+    }
+}
+
+// Mark attendance for already enrolled student
+async function markAttendanceForEnrolledStudent() {
+    try {
+        const attendanceData = {
+            studentId: userData.studentId,
+            batchId: batchData.batchId,
+            college: decodeURIComponent(batchData.college)
+        };
+
+        await apiCall('markAttendance', 'POST', attendanceData);
+    } catch (error) {
+        console.error('Error marking attendance:', error);
+    }
+}
+
+// Show already enrolled message
+function showAlreadyEnrolledMessage(attendanceMarked) {
+    document.getElementById('signInCard').style.display = 'none';
+    document.getElementById('enrollmentCard').style.display = 'none';
+    document.getElementById('successCard').style.display = 'block';
+
+    // Update the message based on whether attendance was just marked
+    const successCard = document.getElementById('successCard');
+    const messageDiv = successCard.querySelector('.success-message');
+
+    if (attendanceMarked) {
+        messageDiv.innerHTML = `
+            <div class="success-icon">
+                <i class="bi bi-check-lg"></i>
+            </div>
+            <h4 class="mb-3">Welcome Back!</h4>
+            <p class="text-muted">
+                You are already enrolled in this batch.
+            </p>
+            <p class="mb-4">
+                <strong>Your attendance for today has been marked successfully!</strong>
+            </p>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Next Steps:</strong> Use the attendance QR code to mark your presence in future sessions.
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="success-icon">
+                <i class="bi bi-check-lg"></i>
+            </div>
+            <h4 class="mb-3">Already Enrolled!</h4>
+            <p class="text-muted">
+                You are already enrolled in this batch.
+            </p>
+            <p class="mb-4">
+                <strong>Your attendance has already been marked for today.</strong>
+            </p>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Note:</strong> Use the attendance QR code to mark your presence in future sessions.
+            </div>
+        `;
     }
 }
 
@@ -176,10 +280,17 @@ async function handleEnrollment(e) {
             userData.studentId = response.data.studentId;
             localStorage.setItem('studentSession', JSON.stringify(userData));
 
-            // Show success message
-            showSuccessMessage();
+            // Show success message (first time enrollment)
+            showSuccessMessage(true);
         } else {
-            showToast(response.message || 'Enrollment failed', 'danger');
+            // Check if already enrolled
+            if (response.message && response.message.includes('already enrolled')) {
+                showToast('You are already enrolled in this batch', 'info');
+                // Redirect to check enrollment status
+                await checkEnrollmentStatus();
+            } else {
+                showToast(response.message || 'Enrollment failed', 'danger');
+            }
         }
     } catch (error) {
         console.error('Error enrolling student:', error);
@@ -187,21 +298,23 @@ async function handleEnrollment(e) {
         // For testing without API, show success
         userData.studentId = 'student_' + Date.now();
         localStorage.setItem('studentSession', JSON.stringify(userData));
-        showSuccessMessage();
+        showSuccessMessage(true);
     } finally {
         hideLoading();
     }
 }
 
 // Show success message
-function showSuccessMessage() {
+function showSuccessMessage(isFirstTime = true) {
     document.getElementById('enrollmentCard').style.display = 'none';
     document.getElementById('successCard').style.display = 'block';
 
-    // Confetti effect (optional)
-    setTimeout(() => {
-        showToast('Welcome! Your attendance has been marked.', 'success');
-    }, 500);
+    if (isFirstTime) {
+        // Only show the toast for first time enrollment
+        setTimeout(() => {
+            showToast('Welcome! Your attendance has been marked.', 'success');
+        }, 500);
+    }
 }
 
 // Sign out
