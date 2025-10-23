@@ -121,6 +121,7 @@ function showEnrollmentForm() {
     document.getElementById('userPhoto').src = userData.picture || 'https://via.placeholder.com/80';
     document.getElementById('userName').textContent = userData.name;
     document.getElementById('userEmail').textContent = userData.email;
+    document.getElementById('userCollegeBadge').textContent = decodeURIComponent(batchData.college);
 
     // Populate form fields
     document.getElementById('studentName').value = userData.name;

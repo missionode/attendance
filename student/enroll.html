@@ -66,27 +66,33 @@
                             <img id="userPhoto" src="" alt="Profile" class="student-photo" style="width: 80px; height: 80px; border: 3px solid #4285f4;">
                             <h6 class="mt-2 mb-0" id="userName"></h6>
                             <small class="text-muted" id="userEmail"></small>
+                            <div class="mt-2">
+                                <span class="badge bg-primary" id="userCollegeBadge"></span>
+                            </div>
                         </div>
 
                         <!-- Enrollment Form -->
                         <form id="enrollmentForm">
                             <div class="mb-3">
-                                <label for="studentName" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="studentName" required readonly>
+                                <label for="studentName" class="form-label fw-bold">Full Name</label>
+                                <input type="text" class="form-control" id="studentName" required>
+                                <div class="form-text text-danger fw-bold mt-2" style="font-size: 0.95rem;">
+                                    <i class="bi bi-exclamation-triangle-fill"></i> Please check and update with your full name if needed
+                                </div>
                             </div>
 
                             <div class="mb-3">
-                                <label for="studentEmail" class="form-label">Email</label>
+                                <label for="studentEmail" class="form-label fw-bold">Email</label>
                                 <input type="email" class="form-control" id="studentEmail" required readonly>
                             </div>
 
                             <div class="mb-3">
-                                <label for="studentCollege" class="form-label">College Name</label>
+                                <label for="studentCollege" class="form-label fw-bold">College Name</label>
                                 <input type="text" class="form-control" id="studentCollege" required readonly>
                             </div>
 
                             <div class="mb-3">
-                                <label for="studentBatch" class="form-label">Batch</label>
+                                <label for="studentBatch" class="form-label fw-bold">Batch</label>
                                 <input type="text" class="form-control" id="studentBatch" required readonly>
                             </div>
 
