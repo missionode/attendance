@@ -1047,13 +1047,3 @@ p {
     color: var(--text-secondary) !important;
     font-size: 1.2em !important;
 }
-
-/* Select2 in input groups */
-.input-group .select2-container--bootstrap-5 {
-    flex: 1 1 auto;
-}
-
-.input-group .select2-container--bootstrap-5 .select2-selection {
-    border-top-right-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-}
