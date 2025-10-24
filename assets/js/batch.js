@@ -35,8 +35,8 @@ function setupEventListeners() {
     // Filter by college
     document.getElementById('filterBatchCollege').addEventListener('change', filterBatchList);
 
-    // Search existing colleges in modal
-    document.getElementById('searchExistingCollege').addEventListener('input', filterExistingColleges);
+    // Live search as user types in new college name input
+    document.getElementById('newCollegeName').addEventListener('input', filterExistingColleges);
 
     // Modal show event - populate existing colleges list
     const addCollegeModal = document.getElementById('addCollegeModal');
@@ -127,8 +127,8 @@ function populateExistingCollegesList() {
     const container = document.getElementById('existingCollegesList');
     const noCollegesMessage = document.getElementById('noCollegesMessage');
 
-    // Clear search input
-    document.getElementById('searchExistingCollege').value = '';
+    // Clear new college input
+    document.getElementById('newCollegeName').value = '';
 
     if (colleges.length === 0) {
         container.innerHTML = '';
@@ -154,12 +154,21 @@ function populateExistingCollegesList() {
     });
 }
 
-// Filter existing colleges list
+// Filter existing colleges list as user types
 function filterExistingColleges() {
-    const searchTerm = document.getElementById('searchExistingCollege').value.toLowerCase();
+    const searchTerm = document.getElementById('newCollegeName').value.toLowerCase().trim();
     const container = document.getElementById('existingCollegesList');
     const noCollegesMessage = document.getElementById('noCollegesMessage');
     const items = container.querySelectorAll('.college-list-item');
+
+    // If search is empty, show all colleges
+    if (searchTerm === '') {
+        items.forEach(item => {
+            item.style.display = 'block';
+        });
+        noCollegesMessage.style.display = 'none';
+        return;
+    }
 
     let visibleCount = 0;
 
@@ -174,7 +183,7 @@ function filterExistingColleges() {
     });
 
     // Show/hide no results message
-    if (visibleCount === 0) {
+    if (visibleCount === 0 && searchTerm !== '') {
         noCollegesMessage.style.display = 'block';
     } else {
         noCollegesMessage.style.display = 'none';
