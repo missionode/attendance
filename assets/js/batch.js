@@ -294,6 +294,7 @@ async function loadBatches() {
             allBatches = response.data;
         } else {
             allBatches = [];
+            showToast(response.message || 'Failed to load batches', 'warning');
         }
 
         filteredBatches = [...allBatches];
@@ -301,10 +302,11 @@ async function loadBatches() {
     } catch (error) {
         console.error('Error loading batches:', error);
 
-        // Use mock data for testing
-        allBatches = getMockBatches();
-        filteredBatches = [...allBatches];
+        // Show error message instead of loading mock data
+        allBatches = [];
+        filteredBatches = [];
         displayBatches();
+        showToast('Failed to load batches. Please check your connection.', 'danger');
     } finally {
         hideLoading();
     }

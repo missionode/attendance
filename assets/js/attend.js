@@ -137,18 +137,8 @@ async function checkEnrollmentStatus() {
         }
     } catch (error) {
         console.error('Error checking enrollment:', error);
-
-        // For testing without API, use mock data
-        studentData = {
-            studentId: 'student_123',
-            name: userData.name,
-            email: userData.email,
-            college: 'ABC College',
-            batchName: 'BATCH_5X8A9B',
-            enrolledDate: new Date().toISOString()
-        };
-        showAttendanceCard();
-        checkTodayAttendance();
+        showSignInCard();
+        showToast('Failed to check enrollment. Please check your connection.', 'danger');
     } finally {
         hideLoading();
     }
@@ -241,9 +231,7 @@ async function markAttendance() {
         }
     } catch (error) {
         console.error('Error marking attendance:', error);
-
-        // For testing without API
-        showSuccessCard();
+        showToast('Failed to mark attendance. Please check your connection and try again.', 'danger');
     } finally {
         hideLoading();
     }
@@ -290,10 +278,8 @@ async function loadAttendanceHistory() {
         }
     } catch (error) {
         console.error('Error loading attendance history:', error);
-
-        // Use mock data for testing
-        const mockHistory = getMockAttendanceHistory();
-        displayAttendanceHistory(mockHistory);
+        // Show empty state instead of mock data
+        displayAttendanceHistory([]);
     }
 }
 

@@ -294,11 +294,7 @@ async function handleEnrollment(e) {
         }
     } catch (error) {
         console.error('Error enrolling student:', error);
-
-        // For testing without API, show success
-        userData.studentId = 'student_' + Date.now();
-        localStorage.setItem('studentSession', JSON.stringify(userData));
-        showSuccessMessage(true);
+        showToast('Failed to enroll. Please check your connection and try again.', 'danger');
     } finally {
         hideLoading();
     }

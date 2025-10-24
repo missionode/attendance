@@ -50,6 +50,7 @@ async function loadAttendanceData() {
         } else {
             allAttendance = [];
             console.log('No attendance data received');
+            showToast(response.message || 'Failed to load attendance data', 'warning');
         }
 
         filteredAttendance = [...allAttendance];
@@ -59,12 +60,13 @@ async function loadAttendanceData() {
     } catch (error) {
         console.error('Error loading attendance:', error);
 
-        // Use mock data for testing
-        allAttendance = getMockAttendance();
-        filteredAttendance = [...allAttendance];
+        // Show error message instead of loading mock data
+        allAttendance = [];
+        filteredAttendance = [];
         displayAttendance();
         updateStatistics();
         populateFilters();
+        showToast('Failed to load attendance data. Please check your connection.', 'danger');
     } finally {
         hideLoading();
     }

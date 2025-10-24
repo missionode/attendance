@@ -51,12 +51,15 @@ async function loadCalendarData() {
         if (response.success) {
             updateCalendarEvents(response.data);
         } else {
-            showToast('Failed to load calendar data', 'danger');
+            // Clear calendar and show empty state
+            calendar.removeAllEvents();
+            showToast(response.message || 'Failed to load calendar data', 'warning');
         }
     } catch (error) {
         console.error('Error loading calendar:', error);
-        // Load mock data for testing
-        loadMockData();
+        // Clear calendar and show error
+        calendar.removeAllEvents();
+        showToast('Failed to load calendar data. Please check your connection.', 'danger');
     } finally {
         hideLoading();
     }
@@ -109,13 +112,14 @@ async function loadStudentsForDate(date) {
         } else {
             allStudents = [];
             filteredStudents = [];
-            showToast('Failed to load students', 'danger');
+            showToast(response.message || 'Failed to load students', 'warning');
         }
     } catch (error) {
         console.error('Error loading students:', error);
-        // Load mock data for testing
-        allStudents = getMockStudents(date);
-        filteredStudents = [...allStudents];
+        // Show empty state instead of mock data
+        allStudents = [];
+        filteredStudents = [];
+        showToast('Failed to load students. Please check your connection.', 'danger');
     } finally {
         hideLoading();
     }
