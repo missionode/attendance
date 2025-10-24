@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadBatches();
     setupEventListeners();
     generateNewBatchName();
+    initializeSearchableSelects();
 });
 
 // Setup event listeners
@@ -41,6 +42,26 @@ function generateNewBatchName() {
     document.getElementById('batchName').value = batchName;
 }
 
+// Initialize searchable select dropdowns
+function initializeSearchableSelects() {
+    // Initialize college select with Select2
+    $('#collegeSelect').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Search or select college...',
+        allowClear: true,
+        width: '100%',
+        tags: false
+    });
+
+    // Initialize filter college select with Select2
+    $('#filterBatchCollege').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'All Colleges',
+        allowClear: true,
+        width: '100%'
+    });
+}
+
 // Load colleges
 async function loadColleges() {
     try {
@@ -64,24 +85,34 @@ async function loadColleges() {
 
 // Populate college dropdowns
 function populateCollegeDropdowns() {
-    const collegeSelect = document.getElementById('collegeSelect');
-    const filterSelect = document.getElementById('filterBatchCollege');
+    const collegeSelect = $('#collegeSelect');
+    const filterSelect = $('#filterBatchCollege');
 
-    // Clear existing options except first
-    collegeSelect.innerHTML = '<option value="">Select or add new college...</option>';
-    filterSelect.innerHTML = '<option value="">All Colleges</option>';
+    // Store current values
+    const currentCollegeValue = collegeSelect.val();
+    const currentFilterValue = filterSelect.val();
 
+    // Clear existing options
+    collegeSelect.empty();
+    filterSelect.empty();
+
+    // Add placeholder options
+    collegeSelect.append(new Option('Select or add new college...', '', false, false));
+    filterSelect.append(new Option('All Colleges', '', false, false));
+
+    // Add college options
     colleges.forEach(college => {
-        const option1 = document.createElement('option');
-        option1.value = college;
-        option1.textContent = college;
-        collegeSelect.appendChild(option1);
-
-        const option2 = document.createElement('option');
-        option2.value = college;
-        option2.textContent = college;
-        filterSelect.appendChild(option2);
+        collegeSelect.append(new Option(college, college, false, false));
+        filterSelect.append(new Option(college, college, false, false));
     });
+
+    // Restore previous selections
+    if (currentCollegeValue) {
+        collegeSelect.val(currentCollegeValue).trigger('change');
+    }
+    if (currentFilterValue) {
+        filterSelect.val(currentFilterValue).trigger('change');
+    }
 }
 
 // Handle add college
@@ -101,8 +132,8 @@ function handleAddCollege() {
     colleges.push(newCollegeName);
     populateCollegeDropdowns();
 
-    // Select the newly added college
-    document.getElementById('collegeSelect').value = newCollegeName;
+    // Select the newly added college using Select2
+    $('#collegeSelect').val(newCollegeName).trigger('change');
 
     // Close modal
     bootstrap.Modal.getInstance(document.getElementById('addCollegeModal')).hide();
@@ -354,7 +385,7 @@ function selectBatch(batchId) {
     if (batch) {
         // Populate form
         document.getElementById('batchName').value = batch.batchName;
-        document.getElementById('collegeSelect').value = batch.college;
+        $('#collegeSelect').val(batch.college).trigger('change');
         document.getElementById('batchId').value = batch.batchId;
 
         // Generate QR codes

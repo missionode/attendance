@@ -996,3 +996,64 @@ p {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-muted);
 }
+
+/* ============================================
+   Select2 Customization
+   ============================================ */
+.select2-container--bootstrap-5 .select2-selection {
+    border-color: var(--border-color) !important;
+    min-height: 38px !important;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+.select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.select2-container--bootstrap-5.select2-container--open .select2-selection {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1) !important;
+}
+
+.select2-container--bootstrap-5 .select2-dropdown {
+    border-color: var(--border-color) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+    border-color: var(--border-color) !important;
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+}
+
+.select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field:focus {
+    border-color: var(--primary-color) !important;
+    outline: none !important;
+}
+
+.select2-container--bootstrap-5 .select2-results__option--highlighted {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
+.select2-container--bootstrap-5 .select2-results__option--selected {
+    background-color: var(--bg-secondary) !important;
+}
+
+.select2-container--bootstrap-5 .select2-selection__placeholder {
+    color: var(--text-muted) !important;
+}
+
+.select2-container--bootstrap-5 .select2-selection__clear {
+    color: var(--text-secondary) !important;
+    font-size: 1.2em !important;
+}
+
+/* Select2 in input groups */
+.input-group .select2-container--bootstrap-5 {
+    flex: 1 1 auto;
+}
+
+.input-group .select2-container--bootstrap-5 .select2-selection {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
