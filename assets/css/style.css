@@ -1056,12 +1056,12 @@ p {
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     margin-bottom: var(--spacing-sm);
-    cursor: pointer;
     transition: all var(--transition-base);
     background-color: var(--bg-primary);
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    justify-content: space-between;
 }
 
 .college-list-item:hover {
@@ -1070,9 +1070,62 @@ p {
     transform: translateX(4px);
 }
 
-.college-list-item i {
+.college-list-item-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.college-list-item-content i {
     color: var(--primary-color);
     font-size: 1.2rem;
+}
+
+.college-list-item-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.college-list-item:hover .college-list-item-actions {
+    opacity: 1;
+}
+
+.college-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+}
+
+.college-action-btn i {
+    font-size: 1rem;
+}
+
+.college-action-btn.edit-btn {
+    color: var(--primary-color);
+}
+
+.college-action-btn.edit-btn:hover {
+    background-color: rgba(66, 133, 244, 0.15);
+}
+
+.college-action-btn.delete-btn {
+    color: var(--danger-color);
+}
+
+.college-action-btn.delete-btn:hover {
+    background-color: rgba(234, 67, 53, 0.15);
 }
 
 .college-list-item:active {

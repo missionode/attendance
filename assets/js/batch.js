@@ -140,16 +140,43 @@ function populateExistingCollegesList() {
 
     const collegeItems = colleges.map(college => `
         <div class="college-list-item" data-college="${college}">
-            <i class="bi bi-building"></i> ${college}
+            <div class="college-list-item-content" data-college="${college}">
+                <i class="bi bi-building"></i>
+                <span>${college}</span>
+            </div>
+            <div class="college-list-item-actions">
+                <button class="college-action-btn edit-btn" data-college="${college}" title="Edit college name">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button class="college-action-btn delete-btn" data-college="${college}" title="Delete college">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
         </div>
     `).join('');
 
     container.innerHTML = collegeItems;
 
-    // Add click listeners to college items
-    container.querySelectorAll('.college-list-item').forEach(item => {
+    // Add click listeners to college items for selection
+    container.querySelectorAll('.college-list-item-content').forEach(item => {
         item.addEventListener('click', function() {
             selectExistingCollege(this.getAttribute('data-college'));
+        });
+    });
+
+    // Add click listeners for edit buttons
+    container.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            editCollege(this.getAttribute('data-college'));
+        });
+    });
+
+    // Add click listeners for delete buttons
+    container.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            deleteCollege(this.getAttribute('data-college'));
         });
     });
 }
@@ -200,6 +227,83 @@ function selectExistingCollege(collegeName) {
 
     // Show success message
     showToast(`"${collegeName}" selected`, 'success');
+}
+
+// Edit college name
+function editCollege(oldCollegeName) {
+    // Prompt user for new college name
+    const newCollegeName = prompt('Edit college name:', oldCollegeName);
+
+    if (!newCollegeName) {
+        return; // User cancelled
+    }
+
+    const trimmedName = newCollegeName.trim();
+
+    if (trimmedName === oldCollegeName) {
+        return; // No change
+    }
+
+    if (!trimmedName) {
+        showToast('College name cannot be empty', 'warning');
+        return;
+    }
+
+    // Check if new name already exists
+    if (colleges.includes(trimmedName)) {
+        showToast('A college with this name already exists', 'warning');
+        return;
+    }
+
+    // Update college name in array
+    const index = colleges.indexOf(oldCollegeName);
+    if (index !== -1) {
+        colleges[index] = trimmedName;
+    }
+
+    // Update dropdowns
+    populateCollegeDropdowns();
+
+    // Update the colleges list in modal
+    populateExistingCollegesList();
+
+    // If the old college was selected, update to new name
+    const currentSelection = $('#collegeSelect').val();
+    if (currentSelection === oldCollegeName) {
+        $('#collegeSelect').val(trimmedName).trigger('change');
+    }
+
+    showToast('College name updated successfully', 'success');
+}
+
+// Delete college
+function deleteCollege(collegeName) {
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete "${collegeName}"?\n\nNote: This will only remove it from the dropdown. Existing batches will not be affected.`)) {
+        return;
+    }
+
+    // Check if this college is currently selected
+    const currentSelection = $('#collegeSelect').val();
+
+    // Remove from colleges array
+    const index = colleges.indexOf(collegeName);
+    if (index !== -1) {
+        colleges.splice(index, 1);
+    }
+
+    // Update dropdowns
+    populateCollegeDropdowns();
+
+    // Update the colleges list in modal
+    populateExistingCollegesList();
+
+    // Clear selection if deleted college was selected
+    if (currentSelection === collegeName) {
+        $('#collegeSelect').val('').trigger('change');
+    }
+
+    showToast('College deleted successfully', 'success');
 }
 
 // Handle add college
