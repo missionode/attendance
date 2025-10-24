@@ -50,6 +50,12 @@ function handleRequest(e) {
       case 'getColleges':
         response = getColleges();
         break;
+      case 'updateCollege':
+        response = updateCollege(data);
+        break;
+      case 'deleteCollege':
+        response = deleteCollege(data);
+        break;
       case 'getCalendarData':
         response = getCalendarData(data);
         break;
@@ -277,6 +283,103 @@ function getColleges() {
     }
 
     return { success: true, data: Array.from(colleges) };
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}
+
+// Update college name across all sheets
+function updateCollege(data) {
+  try {
+    const oldName = data.oldName;
+    const newName = data.newName;
+
+    if (!oldName || !newName) {
+      return { success: false, message: 'Old name and new name are required' };
+    }
+
+    if (oldName === newName) {
+      return { success: false, message: 'New name is same as old name' };
+    }
+
+    // Update in batches sheet
+    const batchesSheet = getSheet(SHEETS.BATCHES);
+    const batchesValues = batchesSheet.getDataRange().getValues();
+    let batchesUpdated = 0;
+
+    for (let i = 1; i < batchesValues.length; i++) {
+      if (batchesValues[i][2] === oldName) {
+        batchesSheet.getRange(i + 1, 3).setValue(newName);
+        batchesUpdated++;
+      }
+    }
+
+    // Update in students sheet
+    const studentsSheet = getSheet(SHEETS.STUDENTS);
+    const studentsValues = studentsSheet.getDataRange().getValues();
+    let studentsUpdated = 0;
+
+    for (let i = 1; i < studentsValues.length; i++) {
+      if (studentsValues[i][4] === oldName) {
+        studentsSheet.getRange(i + 1, 5).setValue(newName);
+        studentsUpdated++;
+      }
+    }
+
+    // Update in attendance sheet
+    const attendanceSheet = getSheet(SHEETS.ATTENDANCE);
+    const attendanceValues = attendanceSheet.getDataRange().getValues();
+    let attendanceUpdated = 0;
+
+    for (let i = 1; i < attendanceValues.length; i++) {
+      if (attendanceValues[i][5] === oldName) {
+        attendanceSheet.getRange(i + 1, 6).setValue(newName);
+        attendanceUpdated++;
+      }
+    }
+
+    return {
+      success: true,
+      message: 'College name updated successfully',
+      data: {
+        batchesUpdated: batchesUpdated,
+        studentsUpdated: studentsUpdated,
+        attendanceUpdated: attendanceUpdated
+      }
+    };
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}
+
+// Delete college (only if no batches exist)
+function deleteCollege(data) {
+  try {
+    const collegeName = data.collegeName;
+
+    if (!collegeName) {
+      return { success: false, message: 'College name is required' };
+    }
+
+    // Check if any batches exist with this college
+    const batchesSheet = getSheet(SHEETS.BATCHES);
+    const batchesValues = batchesSheet.getDataRange().getValues();
+
+    for (let i = 1; i < batchesValues.length; i++) {
+      if (batchesValues[i][2] === collegeName) {
+        return {
+          success: false,
+          message: 'Cannot delete college: batches exist with this college name. Please update or delete the batches first.'
+        };
+      }
+    }
+
+    // If we reach here, no batches use this college
+    // Since colleges are derived from batches, there's nothing to delete
+    return {
+      success: true,
+      message: 'College has no associated batches and can be removed from the list'
+    };
   } catch (error) {
     return { success: false, message: error.toString() };
   }

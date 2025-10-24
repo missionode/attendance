@@ -230,7 +230,7 @@ function selectExistingCollege(collegeName) {
 }
 
 // Edit college name
-function editCollege(oldCollegeName) {
+async function editCollege(oldCollegeName) {
     // Prompt user for new college name
     const newCollegeName = prompt('Edit college name:', oldCollegeName);
 
@@ -255,55 +255,96 @@ function editCollege(oldCollegeName) {
         return;
     }
 
-    // Update college name in array
-    const index = colleges.indexOf(oldCollegeName);
-    if (index !== -1) {
-        colleges[index] = trimmedName;
+    try {
+        showLoading('Updating college name...');
+
+        const response = await apiCall('updateCollege', 'POST', {
+            oldName: oldCollegeName,
+            newName: trimmedName
+        });
+
+        if (response.success) {
+            // Update college name in local array
+            const index = colleges.indexOf(oldCollegeName);
+            if (index !== -1) {
+                colleges[index] = trimmedName;
+            }
+
+            // Update dropdowns
+            populateCollegeDropdowns();
+
+            // Update the colleges list in modal
+            populateExistingCollegesList();
+
+            // If the old college was selected, update to new name
+            const currentSelection = $('#collegeSelect').val();
+            if (currentSelection === oldCollegeName) {
+                $('#collegeSelect').val(trimmedName).trigger('change');
+            }
+
+            // Reload batches to reflect updated college names
+            await loadBatches();
+
+            showToast('College name updated successfully across all records', 'success');
+        } else {
+            showToast(response.message || 'Failed to update college name', 'danger');
+        }
+    } catch (error) {
+        console.error('Error updating college:', error);
+        showToast('Failed to update college. Please check your connection.', 'danger');
+    } finally {
+        hideLoading();
     }
-
-    // Update dropdowns
-    populateCollegeDropdowns();
-
-    // Update the colleges list in modal
-    populateExistingCollegesList();
-
-    // If the old college was selected, update to new name
-    const currentSelection = $('#collegeSelect').val();
-    if (currentSelection === oldCollegeName) {
-        $('#collegeSelect').val(trimmedName).trigger('change');
-    }
-
-    showToast('College name updated successfully', 'success');
 }
 
 // Delete college
-function deleteCollege(collegeName) {
+async function deleteCollege(collegeName) {
     // Confirm deletion
-    if (!confirm(`Are you sure you want to delete "${collegeName}"?\n\nNote: This will only remove it from the dropdown. Existing batches will not be affected.`)) {
+    if (!confirm(`Are you sure you want to delete "${collegeName}"?\n\nNote: You can only delete colleges that have no associated batches.`)) {
         return;
     }
 
-    // Check if this college is currently selected
-    const currentSelection = $('#collegeSelect').val();
+    try {
+        showLoading('Deleting college...');
 
-    // Remove from colleges array
-    const index = colleges.indexOf(collegeName);
-    if (index !== -1) {
-        colleges.splice(index, 1);
+        const response = await apiCall('deleteCollege', 'POST', {
+            collegeName: collegeName
+        });
+
+        if (response.success) {
+            // Check if this college is currently selected
+            const currentSelection = $('#collegeSelect').val();
+
+            // Remove from colleges array
+            const index = colleges.indexOf(collegeName);
+            if (index !== -1) {
+                colleges.splice(index, 1);
+            }
+
+            // Update dropdowns
+            populateCollegeDropdowns();
+
+            // Update the colleges list in modal
+            populateExistingCollegesList();
+
+            // Clear selection if deleted college was selected
+            if (currentSelection === collegeName) {
+                $('#collegeSelect').val('').trigger('change');
+            }
+
+            // Reload batches
+            await loadBatches();
+
+            showToast('College removed successfully', 'success');
+        } else {
+            showToast(response.message || 'Failed to delete college', 'warning');
+        }
+    } catch (error) {
+        console.error('Error deleting college:', error);
+        showToast('Failed to delete college. Please check your connection.', 'danger');
+    } finally {
+        hideLoading();
     }
-
-    // Update dropdowns
-    populateCollegeDropdowns();
-
-    // Update the colleges list in modal
-    populateExistingCollegesList();
-
-    // Clear selection if deleted college was selected
-    if (currentSelection === collegeName) {
-        $('#collegeSelect').val('').trigger('change');
-    }
-
-    showToast('College deleted successfully', 'success');
 }
 
 // Handle add college
