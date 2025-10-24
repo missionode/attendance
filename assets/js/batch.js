@@ -34,6 +34,13 @@ function setupEventListeners() {
 
     // Filter by college
     document.getElementById('filterBatchCollege').addEventListener('change', filterBatchList);
+
+    // Search existing colleges in modal
+    document.getElementById('searchExistingCollege').addEventListener('input', filterExistingColleges);
+
+    // Modal show event - populate existing colleges list
+    const addCollegeModal = document.getElementById('addCollegeModal');
+    addCollegeModal.addEventListener('show.bs.modal', populateExistingCollegesList);
 }
 
 // Generate new batch name
@@ -113,6 +120,77 @@ function populateCollegeDropdowns() {
     if (currentFilterValue) {
         filterSelect.val(currentFilterValue).trigger('change');
     }
+}
+
+// Populate existing colleges list in modal
+function populateExistingCollegesList() {
+    const container = document.getElementById('existingCollegesList');
+    const noCollegesMessage = document.getElementById('noCollegesMessage');
+
+    // Clear search input
+    document.getElementById('searchExistingCollege').value = '';
+
+    if (colleges.length === 0) {
+        container.innerHTML = '';
+        noCollegesMessage.style.display = 'block';
+        return;
+    }
+
+    noCollegesMessage.style.display = 'none';
+
+    const collegeItems = colleges.map(college => `
+        <div class="college-list-item" data-college="${college}">
+            <i class="bi bi-building"></i> ${college}
+        </div>
+    `).join('');
+
+    container.innerHTML = collegeItems;
+
+    // Add click listeners to college items
+    container.querySelectorAll('.college-list-item').forEach(item => {
+        item.addEventListener('click', function() {
+            selectExistingCollege(this.getAttribute('data-college'));
+        });
+    });
+}
+
+// Filter existing colleges list
+function filterExistingColleges() {
+    const searchTerm = document.getElementById('searchExistingCollege').value.toLowerCase();
+    const container = document.getElementById('existingCollegesList');
+    const noCollegesMessage = document.getElementById('noCollegesMessage');
+    const items = container.querySelectorAll('.college-list-item');
+
+    let visibleCount = 0;
+
+    items.forEach(item => {
+        const collegeName = item.getAttribute('data-college').toLowerCase();
+        if (collegeName.includes(searchTerm)) {
+            item.style.display = 'block';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+
+    // Show/hide no results message
+    if (visibleCount === 0) {
+        noCollegesMessage.style.display = 'block';
+    } else {
+        noCollegesMessage.style.display = 'none';
+    }
+}
+
+// Select existing college from modal
+function selectExistingCollege(collegeName) {
+    // Set the selected college in the main dropdown using Select2
+    $('#collegeSelect').val(collegeName).trigger('change');
+
+    // Close the modal
+    bootstrap.Modal.getInstance(document.getElementById('addCollegeModal')).hide();
+
+    // Show success message
+    showToast(`"${collegeName}" selected`, 'success');
 }
 
 // Handle add college

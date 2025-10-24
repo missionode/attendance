@@ -195,27 +195,52 @@
 
     <!-- Add College Modal -->
     <div class="modal fade" id="addCollegeModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="bi bi-building"></i> Add New College
+                        <i class="bi bi-building"></i> Add or Select College
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addCollegeForm">
-                        <div class="mb-3">
-                            <label for="newCollegeName" class="form-label">College Name</label>
-                            <input type="text" class="form-control" id="newCollegeName" required>
+                    <!-- Add New College Form -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-plus-circle"></i> Add New College
+                        </h6>
+                        <form id="addCollegeForm">
+                            <div class="mb-3">
+                                <label for="newCollegeName" class="form-label">College Name</label>
+                                <input type="text" class="form-control" id="newCollegeName" placeholder="Enter new college name..." required>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="saveCollegeBtn">
+                                <i class="bi bi-save"></i> Add College
+                            </button>
+                        </form>
+                    </div>
+
+                    <hr>
+
+                    <!-- Existing Colleges List -->
+                    <div>
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-list-ul"></i> Select from Existing Colleges
+                        </h6>
+                        <div class="mb-2">
+                            <input type="text" class="form-control form-control-sm" id="searchExistingCollege" placeholder="Search existing colleges...">
                         </div>
-                    </form>
+                        <div id="existingCollegesList" style="max-height: 300px; overflow-y: auto;">
+                            <!-- Colleges will be loaded here -->
+                        </div>
+                        <div id="noCollegesMessage" class="text-center text-muted py-4" style="display: none;">
+                            <i class="bi bi-inbox" style="font-size: 2rem; opacity: 0.5;"></i>
+                            <p class="mb-0 mt-2">No colleges found</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveCollegeBtn">
-                        <i class="bi bi-save"></i> Add College
-                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
