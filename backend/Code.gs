@@ -17,7 +17,8 @@ const SPREADSHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
 const SHEETS = {
   BATCHES: 'batches',
   STUDENTS: 'students',
-  ATTENDANCE: 'attendance'
+  ATTENDANCE: 'attendance',
+  DAILY_TOKENS: 'dailyTokens'
 };
 
 // Main entry point for GET and POST requests
@@ -80,6 +81,18 @@ function handleRequest(e) {
       case 'getStudentAttendanceHistory':
         response = getStudentAttendanceHistory(data);
         break;
+      case 'generateDailyAttendanceToken':
+        response = generateDailyAttendanceToken(data);
+        break;
+      case 'validateAttendanceToken':
+        response = validateAttendanceToken(data);
+        break;
+      case 'getDailyAttendanceURL':
+        response = getDailyAttendanceURL(data);
+        break;
+      case 'getActiveDailyTokens':
+        response = getActiveDailyTokens(data);
+        break;
       default:
         response = { success: false, message: 'Invalid action' };
     }
@@ -125,6 +138,9 @@ function initializeSheet(sheet, sheetName) {
       break;
     case SHEETS.ATTENDANCE:
       headers = ['attendanceId', 'studentId', 'batchId', 'date', 'timestamp', 'college'];
+      break;
+    case SHEETS.DAILY_TOKENS:
+      headers = ['tokenId', 'batchId', 'date', 'token', 'createdTimestamp', 'isActive'];
       break;
   }
 
@@ -570,9 +586,27 @@ function checkEnrollment(data) {
 // Mark attendance
 function markAttendance(data) {
   try {
-    const sheet = getSheet(SHEETS.ATTENDANCE);
     const now = new Date();
     const dateStr = Utilities.formatDate(now, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+
+    // Validate token if provided
+    if (data.token && data.date) {
+      const tokenValidation = validateAttendanceToken({
+        batchId: data.batchId,
+        date: data.date,
+        token: data.token
+      });
+
+      if (!tokenValidation.success) {
+        return {
+          success: false,
+          message: tokenValidation.message,
+          errorType: tokenValidation.errorType
+        };
+      }
+    }
+
+    const sheet = getSheet(SHEETS.ATTENDANCE);
 
     // Check if already marked today
     const values = sheet.getDataRange().getValues();
@@ -734,6 +768,308 @@ function getStudentAttendanceHistory(data) {
     const limit = data.limit || 10;
 
     return { success: true, data: history.slice(0, limit) };
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}
+
+// ============================================
+// DAILY TOKEN MANAGEMENT FUNCTIONS
+// ============================================
+
+// Generate unique daily token
+function generateDailyToken() {
+  return Utilities.getUuid().replace(/-/g, '').substring(0, 16).toUpperCase();
+}
+
+// Generate daily attendance token for a batch
+function generateDailyAttendanceToken(data) {
+  try {
+    const sheet = getSheet(SHEETS.DAILY_TOKENS);
+    const batchId = data.batchId;
+    const dateStr = data.date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+
+    if (!batchId) {
+      return { success: false, message: 'Batch ID is required' };
+    }
+
+    // Check if token already exists for this batch and date
+    const values = sheet.getDataRange().getValues();
+    for (let i = 1; i < values.length; i++) {
+      const existingBatchId = values[i][1];
+      const existingDate = values[i][2];
+      const isActive = values[i][5];
+
+      if (existingBatchId === batchId && existingDate === dateStr && isActive) {
+        // Return existing active token
+        return {
+          success: true,
+          data: {
+            tokenId: values[i][0],
+            batchId: values[i][1],
+            date: values[i][2],
+            token: values[i][3],
+            attendanceURL: `https://missionode.github.io/attendance/student/attend.html?batch=${batchId}&date=${dateStr}&token=${values[i][3]}`,
+            alreadyExists: true
+          }
+        };
+      }
+    }
+
+    // Generate new token
+    const tokenId = generateId('token');
+    const token = generateDailyToken();
+    const createdTimestamp = new Date().toISOString();
+    const isActive = true;
+
+    const row = [tokenId, batchId, dateStr, token, createdTimestamp, isActive];
+    sheet.appendRow(row);
+
+    const attendanceURL = `https://missionode.github.io/attendance/student/attend.html?batch=${batchId}&date=${dateStr}&token=${token}`;
+
+    return {
+      success: true,
+      data: {
+        tokenId: tokenId,
+        batchId: batchId,
+        date: dateStr,
+        token: token,
+        attendanceURL: attendanceURL,
+        alreadyExists: false
+      }
+    };
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}
+
+// Validate attendance token
+function validateAttendanceToken(data) {
+  try {
+    const batchId = data.batchId;
+    const dateStr = data.date;
+    const token = data.token;
+
+    if (!batchId || !dateStr || !token) {
+      return {
+        success: false,
+        message: 'Batch ID, date, and token are required',
+        errorType: 'MISSING_PARAMETERS'
+      };
+    }
+
+    // Check if date is today
+    const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    if (dateStr !== today) {
+      return {
+        success: false,
+        message: `This attendance link was for ${dateStr}, but today is ${today}. Please use today's attendance link.`,
+        errorType: 'DATE_MISMATCH',
+        linkDate: dateStr,
+        currentDate: today
+      };
+    }
+
+    const sheet = getSheet(SHEETS.DAILY_TOKENS);
+    const values = sheet.getDataRange().getValues();
+
+    // Find matching token
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][1] === batchId && values[i][2] === dateStr && values[i][3] === token) {
+        const isActive = values[i][5];
+
+        if (!isActive) {
+          return {
+            success: false,
+            message: 'This attendance link has been deactivated',
+            errorType: 'TOKEN_INACTIVE'
+          };
+        }
+
+        return {
+          success: true,
+          message: 'Token is valid',
+          data: {
+            tokenId: values[i][0],
+            validUntil: dateStr + ' 23:59:59'
+          }
+        };
+      }
+    }
+
+    return {
+      success: false,
+      message: 'Invalid attendance link. Please contact your administrator.',
+      errorType: 'TOKEN_NOT_FOUND'
+    };
+  } catch (error) {
+    return { success: false, message: error.toString(), errorType: 'SYSTEM_ERROR' };
+  }
+}
+
+// Get daily attendance URL for a batch and date
+function getDailyAttendanceURL(data) {
+  try {
+    const batchId = data.batchId;
+    const dateStr = data.date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+
+    if (!batchId) {
+      return { success: false, message: 'Batch ID is required' };
+    }
+
+    const sheet = getSheet(SHEETS.DAILY_TOKENS);
+    const values = sheet.getDataRange().getValues();
+
+    // Find active token for this batch and date
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][1] === batchId && values[i][2] === dateStr && values[i][5]) {
+        const token = values[i][3];
+        const attendanceURL = `https://missionode.github.io/attendance/student/attend.html?batch=${batchId}&date=${dateStr}&token=${token}`;
+
+        return {
+          success: true,
+          data: {
+            tokenId: values[i][0],
+            batchId: batchId,
+            date: dateStr,
+            token: token,
+            attendanceURL: attendanceURL
+          }
+        };
+      }
+    }
+
+    return {
+      success: false,
+      message: 'No active token found for this date. Please generate a new token.'
+    };
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}
+
+// Get active daily tokens for a batch
+function getActiveDailyTokens(data) {
+  try {
+    const batchId = data.batchId;
+
+    if (!batchId) {
+      return { success: false, message: 'Batch ID is required' };
+    }
+
+    const sheet = getSheet(SHEETS.DAILY_TOKENS);
+    const values = sheet.getDataRange().getValues();
+
+    const tokens = [];
+    for (let i = 1; i < values.length; i++) {
+      if (values[i][1] === batchId) {
+        const dateStr = values[i][2];
+        const token = values[i][3];
+
+        tokens.push({
+          tokenId: values[i][0],
+          batchId: values[i][1],
+          date: dateStr,
+          token: token,
+          createdTimestamp: values[i][4],
+          isActive: values[i][5],
+          attendanceURL: `https://missionode.github.io/attendance/student/attend.html?batch=${batchId}&date=${dateStr}&token=${token}`
+        });
+      }
+    }
+
+    // Sort by date descending (newest first)
+    tokens.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return { success: true, data: tokens };
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}
+
+// ============================================
+// AUTOMATIC DAILY TOKEN GENERATION
+// ============================================
+
+// Setup daily trigger (run this once manually)
+function setupDailyTrigger() {
+  try {
+    // Delete existing triggers to avoid duplicates
+    const triggers = ScriptApp.getProjectTriggers();
+    triggers.forEach(trigger => {
+      if (trigger.getHandlerFunction() === 'generateAllDailyTokens') {
+        ScriptApp.deleteTrigger(trigger);
+      }
+    });
+
+    // Create new trigger at 6 AM daily
+    ScriptApp.newTrigger('generateAllDailyTokens')
+      .timeBased()
+      .everyDays(1)
+      .atHour(6)
+      .create();
+
+    return { success: true, message: 'Daily trigger set up successfully at 6 AM' };
+  } catch (error) {
+    return { success: false, message: error.toString() };
+  }
+}
+
+// Generate tokens for all active batches (called by trigger)
+function generateAllDailyTokens() {
+  try {
+    const batchesResponse = getBatches({ activeOnly: true });
+
+    if (!batchesResponse.success || !batchesResponse.data) {
+      Logger.log('No active batches found');
+      return;
+    }
+
+    const today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+    let generatedCount = 0;
+    let skippedCount = 0;
+
+    batchesResponse.data.forEach(batch => {
+      const result = generateDailyAttendanceToken({
+        batchId: batch.batchId,
+        date: today
+      });
+
+      if (result.success) {
+        if (result.data.alreadyExists) {
+          skippedCount++;
+          Logger.log(`Token already exists for batch: ${batch.batchName}`);
+        } else {
+          generatedCount++;
+          Logger.log(`Generated token for batch: ${batch.batchName}`);
+        }
+      } else {
+        Logger.log(`Failed to generate token for batch: ${batch.batchName} - ${result.message}`);
+      }
+    });
+
+    Logger.log(`Daily token generation complete. Generated: ${generatedCount}, Skipped: ${skippedCount}`);
+    return { generated: generatedCount, skipped: skippedCount };
+  } catch (error) {
+    Logger.log('Error in generateAllDailyTokens: ' + error.toString());
+    return { error: error.toString() };
+  }
+}
+
+// Remove daily trigger (if needed)
+function removeDailyTrigger() {
+  try {
+    const triggers = ScriptApp.getProjectTriggers();
+    let deletedCount = 0;
+
+    triggers.forEach(trigger => {
+      if (trigger.getHandlerFunction() === 'generateAllDailyTokens') {
+        ScriptApp.deleteTrigger(trigger);
+        deletedCount++;
+      }
+    });
+
+    return { success: true, message: `Removed ${deletedCount} trigger(s)` };
   } catch (error) {
     return { success: false, message: error.toString() };
   }

@@ -131,13 +131,20 @@
                                 </div>
                             </div>
 
-                            <!-- Attendance QR -->
+                            <!-- Daily Attendance QR -->
                             <div class="col-md-6 mb-3">
                                 <div class="qr-container">
+                                    <div class="mb-2">
+                                        <label for="attendanceDate" class="form-label small">Select Date:</label>
+                                        <input type="date" class="form-control form-control-sm" id="attendanceDate">
+                                    </div>
+                                    <button class="btn btn-sm btn-primary w-100 mb-3" onclick="generateDailyQR()">
+                                        <i class="bi bi-qr-code"></i> Generate Daily QR
+                                    </button>
                                     <div id="attendanceQR"></div>
-                                    <p class="qr-label">Attendance QR Code</p>
-                                    <small class="text-muted">Students scan to mark attendance</small>
-                                    <div class="d-flex gap-2 justify-content-center mt-2">
+                                    <p class="qr-label" id="attendanceQRLabel" style="display: none;">Daily Attendance QR</p>
+                                    <small class="text-muted" id="attendanceQRDate" style="display: none;"></small>
+                                    <div class="d-flex gap-2 justify-content-center mt-2" id="attendanceQRActions" style="display: none;">
                                         <button class="btn btn-sm btn-outline-primary" onclick="downloadQR('attendanceQR', 'attendance')">
                                             <i class="bi bi-download"></i> Download
                                         </button>

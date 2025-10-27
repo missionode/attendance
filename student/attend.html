@@ -169,6 +169,32 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Expired Link Card -->
+                <div class="card border-danger" id="expiredLinkCard" style="display: none;">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4" style="font-size: 3rem; color: #ea4335;">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <h5 class="mb-4 text-danger">Attendance Link Expired</h5>
+                        <div class="alert alert-danger text-start">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <strong>This attendance link is no longer valid.</strong>
+                            <p class="mb-0 mt-2" id="expiredLinkMessage">
+                                Please contact your administrator for today's attendance QR code.
+                            </p>
+                        </div>
+                        <p class="text-muted mb-4">
+                            <small>
+                                <i class="bi bi-info-circle"></i>
+                                Attendance links are generated daily and expire after 24 hours for security purposes.
+                            </small>
+                        </p>
+                        <button class="btn btn-secondary" onclick="window.history.back()">
+                            <i class="bi bi-arrow-left"></i> Go Back
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

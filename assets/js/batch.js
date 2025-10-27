@@ -5,6 +5,8 @@ let currentQRCodes = {
     enrollment: null,
     attendance: null
 };
+let currentBatchData = null;
+let currentDailyToken = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     generateNewBatchName();
     initializeSearchableSelects();
+    setTodayDate();
 });
 
 // Setup event listeners
@@ -447,59 +450,7 @@ async function handleBatchSubmit(e) {
     }
 }
 
-// Generate QR codes
-function generateQRCodes(batchData) {
-    console.log('Generating QR codes for:', batchData);
-
-    // Check if QRCode library is loaded
-    if (typeof QRCode === 'undefined') {
-        console.error('QRCode library not loaded!');
-        showToast('QR Code library failed to load. Please refresh the page.', 'danger');
-        return;
-    }
-
-    // Clear existing QR codes
-    const enrollmentCanvas = document.getElementById('enrollmentQR');
-    const attendanceCanvas = document.getElementById('attendanceQR');
-
-    if (!enrollmentCanvas || !attendanceCanvas) {
-        console.error('QR code containers not found!');
-        return;
-    }
-
-    enrollmentCanvas.innerHTML = '';
-    attendanceCanvas.innerHTML = '';
-
-    try {
-        // Generate enrollment QR
-        currentQRCodes.enrollment = new QRCode(enrollmentCanvas, {
-            text: batchData.enrollmentURL || '',
-            width: 200,
-            height: 200,
-            colorDark: '#333333',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-        });
-
-        // Generate attendance QR
-        currentQRCodes.attendance = new QRCode(attendanceCanvas, {
-            text: batchData.attendanceURL || '',
-            width: 200,
-            height: 200,
-            colorDark: '#333333',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-        });
-
-        console.log('QR codes generated successfully');
-
-        // Store batch ID
-        document.getElementById('batchId').value = batchData.batchId;
-    } catch (error) {
-        console.error('Error generating QR codes:', error);
-        showToast('Failed to generate QR codes: ' + error.message, 'danger');
-    }
-}
+// Note: generateQRCodes function moved to end of file with daily QR support
 
 // Download QR code
 function downloadQR(canvasId, type) {
@@ -514,37 +465,7 @@ function downloadQR(canvasId, type) {
     }
 }
 
-// Copy URL to clipboard
-function copyURL(type) {
-    const batch = allBatches.find(b => b.batchId === document.getElementById('batchId').value);
-
-    if (!batch) {
-        showToast('Please create or select a batch first', 'warning');
-        return;
-    }
-
-    const url = type === 'enrollment' ? batch.enrollmentURL : batch.attendanceURL;
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(url).then(() => {
-        showToast(`${type === 'enrollment' ? 'Enrollment' : 'Attendance'} URL copied to clipboard!`, 'success');
-    }).catch(err => {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = url;
-        textArea.style.position = 'fixed';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-            document.execCommand('copy');
-            showToast(`${type === 'enrollment' ? 'Enrollment' : 'Attendance'} URL copied to clipboard!`, 'success');
-        } catch (err) {
-            showToast('Failed to copy URL', 'danger');
-        }
-        document.body.removeChild(textArea);
-    });
-}
+// Note: copyURL function moved to end of file with daily token support
 
 // Load batches
 async function loadBatches() {
@@ -657,6 +578,183 @@ function resetForm() {
     document.getElementById('qrCodeSection').style.display = 'none';
     document.getElementById('saveBatchBtn').innerHTML = '<i class="bi bi-save"></i> Create Batch';
     generateNewBatchName();
+}
+
+// Set today's date in the date picker
+function setTodayDate() {
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('attendanceDate');
+    if (dateInput) {
+        dateInput.value = today;
+    }
+}
+
+// Generate daily attendance QR code
+async function generateDailyQR() {
+    const batchId = document.getElementById('batchId').value;
+    const dateInput = document.getElementById('attendanceDate').value;
+
+    if (!batchId) {
+        showToast('Please create or select a batch first', 'warning');
+        return;
+    }
+
+    if (!dateInput) {
+        showToast('Please select a date', 'warning');
+        return;
+    }
+
+    try {
+        showLoading('Generating daily attendance token...');
+
+        const response = await apiCall('generateDailyAttendanceToken', 'POST', {
+            batchId: batchId,
+            date: dateInput
+        });
+
+        if (response.success && response.data) {
+            currentDailyToken = response.data;
+
+            // Clear existing QR
+            const attendanceCanvas = document.getElementById('attendanceQR');
+            attendanceCanvas.innerHTML = '';
+
+            // Generate QR code
+            currentQRCodes.attendance = new QRCode(attendanceCanvas, {
+                text: response.data.attendanceURL,
+                width: 200,
+                height: 200,
+                colorDark: '#333333',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            // Show QR info
+            document.getElementById('attendanceQRLabel').style.display = 'block';
+            document.getElementById('attendanceQRDate').style.display = 'block';
+            document.getElementById('attendanceQRActions').style.display = 'flex';
+
+            const dateObj = new Date(dateInput);
+            const formattedDate = dateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            document.getElementById('attendanceQRDate').textContent = `Valid for: ${formattedDate}`;
+
+            if (response.data.alreadyExists) {
+                showToast('Using existing token for this date', 'info');
+            } else {
+                showToast('Daily attendance QR generated successfully!', 'success');
+            }
+        } else {
+            showToast(response.message || 'Failed to generate token', 'danger');
+        }
+    } catch (error) {
+        console.error('Error generating daily QR:', error);
+        showToast('Failed to generate daily QR. Please try again.', 'danger');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Modified generateQRCodes to only generate enrollment QR
+function generateQRCodes(batchData) {
+    console.log('Generating enrollment QR for:', batchData);
+
+    currentBatchData = batchData;
+
+    // Check if QRCode library is loaded
+    if (typeof QRCode === 'undefined') {
+        console.error('QRCode library not loaded!');
+        showToast('QR Code library failed to load. Please refresh the page.', 'danger');
+        return;
+    }
+
+    // Clear existing enrollment QR
+    const enrollmentCanvas = document.getElementById('enrollmentQR');
+
+    if (!enrollmentCanvas) {
+        console.error('QR code container not found!');
+        return;
+    }
+
+    enrollmentCanvas.innerHTML = '';
+
+    try {
+        // Generate enrollment QR only
+        currentQRCodes.enrollment = new QRCode(enrollmentCanvas, {
+            text: batchData.enrollmentURL || '',
+            width: 200,
+            height: 200,
+            colorDark: '#333333',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        console.log('Enrollment QR code generated successfully');
+
+        // Store batch ID
+        document.getElementById('batchId').value = batchData.batchId;
+
+        // Set today's date for attendance QR
+        setTodayDate();
+
+        // Hide attendance QR until generated
+        document.getElementById('attendanceQRLabel').style.display = 'none';
+        document.getElementById('attendanceQRDate').style.display = 'none';
+        document.getElementById('attendanceQRActions').style.display = 'none';
+
+        // Clear attendance QR
+        const attendanceCanvas = document.getElementById('attendanceQR');
+        if (attendanceCanvas) {
+            attendanceCanvas.innerHTML = '';
+        }
+    } catch (error) {
+        console.error('Error generating QR codes:', error);
+        showToast('Failed to generate QR codes: ' + error.message, 'danger');
+    }
+}
+
+// Modified copyURL to handle daily attendance tokens
+function copyURL(type) {
+    let url;
+
+    if (type === 'enrollment') {
+        const batch = allBatches.find(b => b.batchId === document.getElementById('batchId').value);
+        if (!batch) {
+            showToast('Please create or select a batch first', 'warning');
+            return;
+        }
+        url = batch.enrollmentURL;
+    } else if (type === 'attendance') {
+        if (!currentDailyToken || !currentDailyToken.attendanceURL) {
+            showToast('Please generate a daily attendance QR first', 'warning');
+            return;
+        }
+        url = currentDailyToken.attendanceURL;
+    }
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(url).then(() => {
+        showToast(`${type === 'enrollment' ? 'Enrollment' : 'Daily Attendance'} URL copied to clipboard!`, 'success');
+    }).catch(err => {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = url;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast(`${type === 'enrollment' ? 'Enrollment' : 'Daily Attendance'} URL copied to clipboard!`, 'success');
+        } catch (err) {
+            showToast('Failed to copy URL', 'danger');
+        }
+        document.body.removeChild(textArea);
+    });
 }
 
 // Mock data for testing

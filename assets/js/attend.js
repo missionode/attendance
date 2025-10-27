@@ -2,20 +2,30 @@ let userData = null;
 let batchId = null;
 let studentData = null;
 let todayAttendance = null;
+let attendanceDate = null;
+let attendanceToken = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    // Get batch ID from URL
+    // Get parameters from URL
     const urlParams = new URLSearchParams(window.location.search);
     batchId = urlParams.get('batch');
+    attendanceDate = urlParams.get('date');
+    attendanceToken = urlParams.get('token');
 
     if (!batchId) {
         showToast('Invalid attendance link', 'danger');
         return;
     }
 
-    // Check if user is already signed in
-    checkExistingSession();
+    // Validate token if present
+    if (attendanceToken && attendanceDate) {
+        validateToken();
+    } else {
+        // Old link format without token - show error
+        showExpiredLinkCard('This attendance link is outdated. Please ask your administrator for a new daily attendance QR code.');
+        return;
+    }
 
     setupEventListeners();
 });
@@ -211,6 +221,66 @@ function showMarkAttendanceButton() {
     document.getElementById('alreadyMarkedMessage').style.display = 'none';
 }
 
+// Validate attendance token
+async function validateToken() {
+    try {
+        showLoading('Validating attendance link...');
+
+        const response = await apiCall('validateAttendanceToken', 'GET', {
+            batchId: batchId,
+            date: attendanceDate,
+            token: attendanceToken
+        });
+
+        if (response.success) {
+            // Token is valid, proceed with sign-in check
+            checkExistingSession();
+        } else {
+            // Token is invalid or expired
+            hideLoading();
+
+            if (response.errorType === 'DATE_MISMATCH') {
+                const linkDate = new Date(response.linkDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                const currentDate = new Date(response.currentDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                showExpiredLinkCard(`This attendance link was for ${linkDate}, but today is ${currentDate}. Please ask your administrator for today's attendance QR code.`);
+            } else if (response.errorType === 'TOKEN_INACTIVE') {
+                showExpiredLinkCard('This attendance link has been deactivated. Please contact your administrator for a new link.');
+            } else if (response.errorType === 'TOKEN_NOT_FOUND') {
+                showExpiredLinkCard('Invalid attendance link. Please contact your administrator for the correct link.');
+            } else {
+                showExpiredLinkCard(response.message || 'This attendance link is no longer valid.');
+            }
+        }
+    } catch (error) {
+        console.error('Error validating token:', error);
+        hideLoading();
+        showExpiredLinkCard('Failed to validate attendance link. Please check your connection and try again.');
+    }
+}
+
+// Show expired link card
+function showExpiredLinkCard(message) {
+    document.getElementById('signInRequiredCard').style.display = 'none';
+    document.getElementById('attendanceCard').style.display = 'none';
+    document.getElementById('successCard').style.display = 'none';
+    document.getElementById('notEnrolledCard').style.display = 'none';
+    document.getElementById('expiredLinkCard').style.display = 'block';
+
+    // Set error message
+    const errorMessageElement = document.getElementById('expiredLinkMessage');
+    if (errorMessageElement) {
+        errorMessageElement.textContent = message;
+    }
+}
+
 // Mark attendance
 async function markAttendance() {
     try {
@@ -219,7 +289,9 @@ async function markAttendance() {
         const attendanceData = {
             studentId: studentData.studentId,
             batchId: batchId,
-            college: studentData.college
+            college: studentData.college,
+            token: attendanceToken,
+            date: attendanceDate
         };
 
         const response = await apiCall('markAttendance', 'POST', attendanceData);
@@ -227,7 +299,11 @@ async function markAttendance() {
         if (response.success) {
             showSuccessCard();
         } else {
-            showToast(response.message || 'Failed to mark attendance', 'danger');
+            if (response.errorType === 'DATE_MISMATCH' || response.errorType === 'TOKEN_INACTIVE' || response.errorType === 'TOKEN_NOT_FOUND') {
+                showExpiredLinkCard(response.message);
+            } else {
+                showToast(response.message || 'Failed to mark attendance', 'danger');
+            }
         }
     } catch (error) {
         console.error('Error marking attendance:', error);
